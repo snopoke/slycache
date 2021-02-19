@@ -16,7 +16,7 @@ slycache
 
 
 
-Python cache library loosly modeled after the Java [JSR107 spec](https://docs.google.com/document/d/1YZ-lrH6nW871Vd9Z34Og_EqbX_kxxJi55UrSn4yL2Ak/edit)
+Python cache library loosly modeled after the Java `JSR107 spec <https://docs.google.com/document/d/1YZ-lrH6nW871Vd9Z34Og_EqbX_kxxJi55UrSn4yL2Ak/edit>`_
 
 
 * Free software: BSD-3-Clause
