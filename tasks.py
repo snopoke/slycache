@@ -10,7 +10,6 @@ from invoke import task
 from pathlib import Path
 import webbrowser
 
-
 ROOT_DIR = Path(__file__).parent
 SETUP_FILE = ROOT_DIR.joinpath("setup.py")
 TEST_DIR = ROOT_DIR.joinpath("tests")
