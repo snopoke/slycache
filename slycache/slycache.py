@@ -4,7 +4,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, replace
 from functools import wraps
-from typing import Any, Protocol
+from typing import Any, List, Optional, Protocol
 
 log = logging.getLogger("slycache")
 
@@ -116,21 +116,55 @@ class CacheHolder:
 caches = CacheHolder()
 
 
-class CacheAction(metaclass=ABCMeta):
-    def __init__(self, cache_name=None, timeout=Ellipsis):
-        self._defaults = {}
-        if cache_name is not Ellipsis:
-            self._defaults["cache_name"] = cache_name
-        if timeout is not Ellipsis:
-            self._defaults["timeout"] = timeout
+@dataclass
+class CacheInvocation:
+    key: str
+    cache_name: Optional[str] = None
+    skip_get: bool = True
 
-    def _get_cache(self, cache_config: SlycacheConfig):
-        if self._defaults:
-            return replace(cache_config, **self._defaults)
-        return cache_config
+    def customize_config(self, config: SlycacheConfig) -> SlycacheConfig:
+        overrides = self._get_overrides()
+        if overrides:
+            return replace(config, **overrides)
+        return config
+
+    def _get_overrides(self) -> dict:
+        overrides = {}
+        if self.cache_name:
+            overrides["cache_name"] = self.cache_name
+        return overrides
+
+
+@dataclass
+class CacheResult(CacheInvocation):
+    timeout: Optional[int] = -1
+    skip_get: bool = False
+
+    def _get_overrides(self) -> dict:
+        overrides = super()._get_overrides()
+        if self.timeout != -1:
+            overrides["timeout"] = self.timeout
+        return overrides
+
+
+@dataclass
+class CachePut(CacheInvocation):
+    cache_value: Optional[str] = None
+    timeout: Optional[int] = -1
+
+    def _get_overrides(self) -> dict:
+        overrides = super()._get_overrides()
+        if self.timeout != -1:
+            overrides["timeout"] = self.timeout
+        return overrides
+
+
+class CacheAction(metaclass=ABCMeta):
+    def __init__(self, invocation: CacheInvocation):
+        self.invocation = invocation
 
     def __call__(self, cache_config, cache_key, func, callargs, result):
-        config = self._get_cache(cache_config)
+        config = self.invocation.customize_config(cache_config)
         self._call(config, cache_key, func, callargs, result)
 
     @abstractmethod
@@ -138,7 +172,7 @@ class CacheAction(metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class PutAction(CacheAction):
+class CacheResultAction(CacheAction):
     def _call(self, cache_config, cache_key, func, callargs, result):
         value = self._get_value(func, callargs, result)
         if value is None:
@@ -150,8 +184,32 @@ class PutAction(CacheAction):
         log.debug("cache_set: cache=%s, function=%s, key=%s",
                   cache_config.cache_name, func.__name__, cache_key)
 
+    def _get_value(self, func, callargs, result):  # pylint: disable=unused-argument,no-self-use
+        return result
+
+
+class CachePutAction(CacheResultAction):
     def _get_value(self, func, callargs, result):
-        raise NotImplementedError
+        if self.invocation.cache_value is not None:
+            return callargs[self.invocation.cache_value]
+
+        callargs.pop('self', None)
+        if len(callargs) == 1:
+            return list(callargs.values())[0]
+        raise SlycacheException(
+            "'cache_value' must be provided for functions with multiple arguments"
+        )
+
+
+class CacheRemoveAction(CacheAction):
+    def _call(self, cache_config, cache_key, func, callargs, result):
+        log.debug("cache_remove: cache=%s, function=%s, key=%s",
+                  cache_config.cache_name, func.__name__, cache_key)
+        cache_config.delete(cache_key)
+
+
+class CacheRemove(CacheInvocation):
+    pass
 
 
 class Slycache:
@@ -177,54 +235,46 @@ class Slycache:
                      func=None,
                      *,
                      key,
-                     cache_name=Ellipsis,
-                     timeout=Ellipsis,
-                     skip_get=False):
-        class Action(PutAction):
-            def _get_value(self, func, callargs, result):
-                return result
-
-        action = Action(cache_name, timeout)
-        return self._call(func, key, action, skip_get=skip_get)
+                     cache_name: Optional[str] = None,
+                     timeout: int = -1,
+                     skip_get: bool = False):
+        invocation = CacheResult(key, cache_name, skip_get, timeout)
+        return self.caching(func, result=[invocation])
 
     def cache_put(self,
                   func=None,
                   *,
                   key,
-                  cache_value=None,
-                  cache_name=Ellipsis,
-                  timeout=Ellipsis):
-        class Action(PutAction):
-            def _get_value(self, func, callargs, result):
-                if cache_value is not None:
-                    return callargs[cache_value]
+                  cache_value: str = None,
+                  cache_name: str = None,
+                  timeout: int = -1):
+        invocation = CachePut(key,
+                              cache_name=cache_name,
+                              cache_value=cache_value,
+                              timeout=timeout)
+        return self.caching(func, put=[invocation])
 
-                callargs.pop('self', None)
-                if len(callargs) == 1:
-                    return list(callargs.values())[0]
-                raise SlycacheException(
-                    "'cache_value' must be provided for functions with multiple arguments"
-                )
+    def cache_remove(self, func=None, *, key, cache_name: str = None):
+        invocation = CacheRemove(key, cache_name=cache_name)
+        return self.caching(func, remove=[invocation])
 
-        action = Action(cache_name, timeout)
-        return self._call(func, key, action, skip_get=True)
+    def caching(self,
+                func=None,
+                *,
+                result: Optional[List[CacheResult]] = None,
+                put: Optional[List[CachePut]] = None,
+                remove: Optional[List[CacheRemove]] = None):
 
-    def cache_remove(self,
-                     func=None,
-                     *,
-                     key,
-                     cache_name=Ellipsis,
-                     timeout=Ellipsis):
-        class Action(CacheAction):
-            def _call(self, cache_config, cache_key, func, callargs, result):
-                log.debug("cache_remove: cache=%s, function=%s, key=%s",
-                          cache_config.cache_name, func.__name__, cache_key)
-                cache_config.delete(cache_key)
+        actions = [
+            action_class(invocation) for invocations, action_class in (
+                (result, CacheResultAction),
+                (put, CachePutAction),
+                (remove, CacheRemoveAction),
+            ) if invocations for invocation in invocations
+        ]
+        return self._call(func, actions)
 
-        action = Action(cache_name, timeout)
-        return self._call(func, key, action, skip_get=True)
-
-    def _call(self, func, key, action: CacheAction, skip_get: bool):
+    def _call(self, func, actions: List[CacheAction]):
         self.validate()
 
         def _decorator(func):
@@ -232,23 +282,42 @@ class Slycache:
                 raise SlycacheException(
                     f"Decorator must be used on a function: {func!r}")
 
-            self._key_formatter.validate(key, func)
+            skip_get = {action.invocation.skip_get for action in actions}
+            if len(skip_get) > 1:
+                raise SlycacheException("All actions agree on 'skip_get'")
+
+            skip_get = list(skip_get)[0]
+            for action in actions:
+                self._key_formatter.validate(action.invocation.key, func)
 
             @wraps(func)
             def _inner(*args, **kwargs):
                 bound_args = inspect.signature(func).bind(*args, **kwargs)
-                cache_key = self._key_formatter.format(self._config.prefix,
-                                                       key, func,
-                                                       bound_args.arguments)
+
+                def format_key(key):
+                    return self._key_formatter.format(self._config.prefix, key,
+                                                      func,
+                                                      bound_args.arguments)
+
+                keys = {
+                    format_key(action.invocation.key): action
+                    for action in actions
+                }
+
                 if not skip_get:
-                    result = self._config.get(cache_key, default=Ellipsis)
-                    if result is not Ellipsis:
-                        return result
-                    log.debug("cache miss: key=%s function=%s", cache_key,
-                              func.__name__)
+                    for key in keys:
+                        result = self._config.get(key, default=Ellipsis)
+                        if result is not Ellipsis:
+                            log.debug("cache hit: key=%s function=%s", key,
+                                      func.__name__)
+                            return result
+                        log.debug("cache miss: key=%s function=%s", key,
+                                  func.__name__)
+
                 result = func(*args, **kwargs)
-                action(self._config, cache_key, func, bound_args.arguments,
-                       result)
+                for key, action in keys.items():
+                    action(self._config, key, func, bound_args.arguments,
+                           result)
                 return result
 
             return _inner
