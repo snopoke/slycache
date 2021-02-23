@@ -20,18 +20,45 @@ def result_func(arg):  # pylint: disable=unused-argument
 ])  # pylint: disable=too-many-locals
 def test_cache_result_with_config(default_cache, other_cache, cache, timeout,
                                   prefix):
+    _test_cache(default_cache, other_cache, cache, timeout, prefix, True)
+
+
+@pytest.mark.parametrize("cache, timeout", [
+    (Ellipsis, Ellipsis),
+    ("default", Ellipsis),
+    ("other", Ellipsis),
+    (Ellipsis, 5),
+    (Ellipsis, Ellipsis),
+])  # pylint: disable=too-many-locals
+def test_cache_result_overwrite_config(default_cache, other_cache, cache,
+                                       timeout):
+    _test_cache(default_cache, other_cache, cache, timeout, Ellipsis, False)
+
+
+# pylint: disable=too-many-locals
+def _test_cache(default_cache, other_cache, cache, timeout, prefix,
+                override_with_config):
     result = uuid.uuid4().hex
     result_func.return_value = result
 
     cache_alias = cache if cache is not Ellipsis else DEFAULT_CACHE_ALIAS
 
-    config = {}
-    for k, v in {"cache": cache, "timeout": timeout, "prefix": prefix}.items():
+    overrides = {}
+    for k, v in {
+            "cache_name": cache,
+            "timeout": timeout,
+            "prefix": prefix
+    }.items():
         if v is not Ellipsis:
-            config[k] = v
+            overrides[k] = v
 
-    custom_cache = slycache.with_config(**config)
-    cached_func = custom_cache.cache_result(key="{arg}")(result_func)
+    custom_cache = slycache
+    if override_with_config:
+        custom_cache = slycache.with_config(**overrides)
+        overrides = {}
+
+    cached_func = custom_cache.cache_result(key="{arg}",
+                                            **overrides)(result_func)
 
     arg = uuid.uuid4().hex
     assert cached_func(arg) == result
