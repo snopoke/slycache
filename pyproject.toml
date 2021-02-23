@@ -4,7 +4,7 @@ name = "slycache"
 version = "0.1.0"
 homepage = "https://github.com/snopoke/slycache"
 description = "Top-level package for slycache."
-authors = ["Simon Kelly <simongdkelly@gmail.com>"]
+authors = ["snopoke <simongdkelly@gmail.com>"]
 readme = "README.rst"
 license =  "BSD-3-Clause"
 classifiers=[
@@ -23,7 +23,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = ">=3.7"
 
 [tool.poetry.dev-dependencies]
 bumpversion = "*"

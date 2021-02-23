@@ -51,8 +51,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'slycache'
-copyright = "2021, Simon Kelly"
-author = "Simon Kelly"
+copyright = "2021, snopoke"
+author = "snopoke"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -133,7 +133,7 @@ latex_elements = {
 latex_documents = [
     (master_doc, 'slycache.tex',
      'slycache Documentation',
-     'Simon Kelly', 'manual'),
+     'snopoke', 'manual'),
 ]
 
 

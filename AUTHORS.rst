@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Simon Kelly <simongdkelly@gmail.com>
+* snopoke <simongdkelly@gmail.com>
 
 Contributors
 ------------
