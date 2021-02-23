@@ -3,7 +3,8 @@
 __author__ = """snopoke"""
 __version__ = '0.1.0'
 
-from .slycache import caches, slycache, CacheInterface,InvalidCacheError, SlycacheException
+from .slycache import (CacheInterface, InvalidCacheError, SlycacheException,
+                       caches, slycache)
 
 __all__ = [
     "caches",

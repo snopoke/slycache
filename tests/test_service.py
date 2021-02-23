@@ -7,14 +7,15 @@ from slycache import slycache
 from slycache.slycache import Slycache
 
 
-def test_service_save_with_cache_value_param(default_cache):
+def test_service_save_with_cache_value_param(default_cache):  # pylint: disable=unused-argument
+
     service = make_service(slycache)()
     user, data = _get_user_data()
     service.save_with_cache_value_param(user)
     assert service.data == data
 
 
-def test_service_save_no_cache_value_param(default_cache):
+def test_service_save_no_cache_value_param(default_cache):  # pylint: disable=unused-argument
     service = make_service(slycache)()
     user, data = _get_user_data()
     service.save_no_cache_value_param(user)
@@ -37,12 +38,12 @@ def test_service_get_user_by_id_miss(default_cache):
 
     result = service.get_user_by_username(user.id)
     assert result is None
-    assert not default_cache.has_key(user.id)
+    assert user.id not in default_cache
 
     service.data = data
     result = service.get_user_by_id(user.id)
     assert result == user
-    assert default_cache.has_key(user.id)
+    assert user.id in default_cache
 
 
 def test_service_delete(default_cache):
@@ -51,11 +52,11 @@ def test_service_delete(default_cache):
 
     service.save_with_cache_value_param(user)
     assert service.data == data
-    assert default_cache.has_key(user.id)
+    assert user.id in default_cache
 
     service.delete(user)
     assert service.data == {}
-    assert not default_cache.has_key(user.id)
+    assert user.id not in default_cache
 
 
 def _get_user_data() -> Tuple["User", Dict]:
@@ -71,7 +72,6 @@ class User:
 
 
 def make_service(cache: Slycache):
-
     class Service:
         def __init__(self, data: Dict[str, User] = None):
             self.data = data or {}

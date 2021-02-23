@@ -23,19 +23,17 @@ class DictCache:
         for key, value in data.items():
             self.set(key, value)
 
-    def has_key(self, key):
-        return key in self._cache
-
     def get_entry(self, key):
         return self._cache[key]
 
     def get(self, key: str, default: Any = None) -> Any:
         entry = self._cache.get(key, Entry(key, default, None, None))
-        if not entry.expired:
-            return entry.value
+        return None if entry.expired else entry.value
 
     def set(self, key: str, value: Any, timeout: int = None):
-        entry = Entry(key, value, timeout, timeout and datetime.utcnow() + timedelta(seconds=timeout))
+        entry = Entry(
+            key, value, timeout, timeout
+            and datetime.utcnow() + timedelta(seconds=timeout))
         self._cache[key] = entry
 
     def delete(self, key: str):
@@ -46,3 +44,6 @@ class DictCache:
 
     def __repr__(self):
         return f"DictCache({self._alias}, {self._cache})"
+
+    def __contains__(self, key):
+        return key in self._cache

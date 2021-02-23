@@ -1,6 +1,6 @@
 import pytest
 
-from slycache.slycache import caches, DEFAULT_CACHE_ALIAS
+from slycache.slycache import DEFAULT_CACHE_ALIAS, caches
 from tests.mock_cache import DictCache
 
 

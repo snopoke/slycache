@@ -3,12 +3,12 @@ import uuid
 
 import pytest
 
-from slycache import slycache, caches
+from slycache import caches, slycache
 from slycache.slycache import DEFAULT_CACHE_ALIAS
 
 
-def result_func(arg):
-    return getattr(result_func, "_return")
+def result_func(arg):  # pylint: disable=unused-argument
+    return getattr(result_func, "return_value")
 
 
 @pytest.mark.parametrize("cache, timeout, prefix", [
@@ -17,10 +17,11 @@ def result_func(arg):
     ("other", Ellipsis, Ellipsis),
     (Ellipsis, 5, Ellipsis),
     (Ellipsis, Ellipsis, "all_your_base"),
-])
-def test_cache_result_with_config(default_cache, other_cache, cache, timeout, prefix):
+])  # pylint: disable=too-many-locals
+def test_cache_result_with_config(default_cache, other_cache, cache, timeout,
+                                  prefix):
     result = uuid.uuid4().hex
-    result_func._return = result
+    result_func.return_value = result
 
     cache_alias = cache if cache is not Ellipsis else DEFAULT_CACHE_ALIAS
 

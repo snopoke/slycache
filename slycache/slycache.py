@@ -33,8 +33,8 @@ DEFAULT_CACHE_ALIAS = 'default'
 
 class StringKeyFormatter:
     @staticmethod
-    def validate(template, fn):
-        # TODO: parse key to check params
+    def validate(template, fn):  # pylint: disable=unused-argument
+        # TODO: parse key to check params  # pylint: disable=fixme
         # arg_names = inspect.getfullargspec(func).args
         # vary_on = [part.split('.') for part in vary_on]
         # vary_on = [(part[0], tuple(part[1:])) for part in vary_on]
@@ -84,12 +84,18 @@ class CacheHolder:
         self._caches = {}
         self._configs = {}
 
-    def register(self, alias: str, cache_provider: CacheInterface, default_timeout: int = None):
+    def register(self,
+                 alias: str,
+                 cache_provider: CacheInterface,
+                 default_timeout: int = None):
         if alias in self._caches:
             raise InvalidCacheError(f"Cache '{alias}' is already registered")
         self.replace(alias, cache_provider, default_timeout)
 
-    def replace(self, alias: str, cache_provider: CacheInterface, default_timeout: int = None):
+    def replace(self,
+                alias: str,
+                cache_provider: CacheInterface,
+                default_timeout: int = None):
         self._caches[alias] = cache_provider
         self._configs[alias] = SlycacheConfig(alias, timeout=default_timeout)
 
@@ -119,18 +125,23 @@ class PutAction(CacheAction):
     def __call__(self, cache_config, cache_key, func, callargs, result):
         value = self._get_value(func, callargs, result)
         if value is None:
-            log.debug("ignoring None value, cache=%s, function=%s, key=%s", cache_config.cache, func.__name__, cache_key)
+            log.debug("ignoring None value, cache=%s, function=%s, key=%s",
+                      cache_config.cache, func.__name__, cache_key)
             return
 
         cache_config.set(cache_key, value)
-        log.debug("cache_set: cache=%s, function=%s, key=%s", cache_config.cache, func.__name__, cache_key)
+        log.debug("cache_set: cache=%s, function=%s, key=%s",
+                  cache_config.cache, func.__name__, cache_key)
 
     def _get_value(self, func, callargs, result):
         raise NotImplementedError
 
 
 class Slycache:
-    def __init__(self, cache_alias: str = DEFAULT_CACHE_ALIAS, config: SlycacheConfig = None, key_formatter=None):
+    def __init__(self,
+                 cache_alias: str = DEFAULT_CACHE_ALIAS,
+                 config: SlycacheConfig = None,
+                 key_formatter=None):
         self.alias = cache_alias
         self._config = config
         self._key_formatter = key_formatter or StringKeyFormatter
@@ -161,16 +172,20 @@ class Slycache:
                 callargs.pop('self', None)
                 if len(callargs) == 1:
                     return list(callargs.values())[0]
-                else:
-                    raise SlycacheException("'cache_value' must be provided for functions with multiple arguments")
+                raise SlycacheException(
+                    "'cache_value' must be provided for functions with multiple arguments"
+                )
 
         return self._call(func, key, Action(), return_cached=False)
 
     def cache_remove(self, func=None, *, key):
         class Action(CacheAction):
-            def __call__(self, cache_config, cache_key, func, callargs, result):
-                log.debug("cache_remove: cache=%s, function=%s, key=%s", cache_config.cache, func.__name__, cache_key)
+            def __call__(self, cache_config, cache_key, func, callargs,
+                         result):
+                log.debug("cache_remove: cache=%s, function=%s, key=%s",
+                          cache_config.cache, func.__name__, cache_key)
                 cache_config.delete(cache_key)
+
         return self._call(func, key, Action(), return_cached=False)
 
     def _call(self, func, key, action: CacheAction, return_cached: bool):
@@ -185,15 +200,19 @@ class Slycache:
 
             @wraps(func)
             def _inner(*args, **kwargs):
-                callargs = inspect.getcallargs(func, *args, **kwargs)
-                cache_key = self._key_formatter.format(self._config.prefix, key, func, callargs)
+                bound_args = inspect.signature(func).bind(*args, **kwargs)
+                cache_key = self._key_formatter.format(self._config.prefix,
+                                                       key, func,
+                                                       bound_args.arguments)
                 if return_cached:
                     result = self._config.get(cache_key, default=Ellipsis)
                     if result is not Ellipsis:
                         return result
-                    log.debug("cache miss: key=%s function=%s", cache_key, func.__name__)
+                    log.debug("cache miss: key=%s function=%s", cache_key,
+                              func.__name__)
                 result = func(*args, **kwargs)
-                action(self._config, cache_key, func, callargs, result)
+                action(self._config, cache_key, func, bound_args.arguments,
+                       result)
                 return result
 
             return _inner
