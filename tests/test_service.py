@@ -60,16 +60,49 @@ def test_service_delete(default_cache):
     assert user.id not in default_cache
 
 
-def test_update_user():
-    assert False
+def test_update_user(default_cache):
+    user, data = _get_user_data()
+    service = make_service(slycache)(data)
+
+    old_username = user.username
+    new_username = "new username"
+
+    assert user.id not in default_cache
+    assert old_username not in default_cache
+    assert new_username not in default_cache
+
+    service.update_user(user.id, new_username)
+
+    assert old_username not in default_cache
+    assert user.id in default_cache
+    assert new_username in default_cache
 
 
-def test_save_with_multiple():
-    assert False
+def test_save_with_multiple(default_cache):
+    user, data = _get_user_data()
+    service = make_service(slycache)()
+
+    assert user.id not in default_cache
+    assert user.username not in default_cache
+
+    service.save_with_multiple(user)
+
+    assert user.id in default_cache
+    assert user.username in default_cache
 
 
-def test_delete_multiple():
-    assert False
+def test_delete_multiple(default_cache):
+    user, data = _get_user_data()
+    service = make_service(slycache)(data)
+    default_cache.init(data)
+
+    assert user.id in default_cache
+    assert user.username in default_cache
+
+    service.delete_multiple(user)
+
+    assert user.id not in default_cache
+    assert user.username not in default_cache
 
 
 def _get_user_data() -> Tuple["User", Dict]:
@@ -90,13 +123,13 @@ def make_service(cache: Slycache):
             self.data = data or {}
 
         @cache.caching(result=[
-            CacheResult(key="{user.id}", skip_get=True),
-            CacheResult(key="{user.username}", skip_get=True),
+            CacheResult(key="{user_id}", skip_get=True),
+            CacheResult(key="{username}", skip_get=True),
         ])
         def update_user(self, user_id: str, username: str):
-            user = self.get_user_by_id(user_id)
+            user = self.data[user_id]
             user.username = username
-            self.save_with_cache_value_param(user)
+            self.data[user_id] = user
             return user
 
         @cache.cache_result(key="{user_id}")
