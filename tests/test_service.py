@@ -3,6 +3,8 @@ import uuid
 from dataclasses import dataclass
 from typing import Dict, Tuple
 
+import pytest
+
 from slycache import slycache
 from slycache.slycache import CachePut, CacheRemove, CacheResult, Slycache
 
@@ -59,7 +61,8 @@ def test_service_delete(default_cache):
     assert user.id not in default_cache
 
 
-def test_update_user(default_cache):
+@pytest.mark.parametrize("func", ["update_user", "update_user_simple"])
+def test_update_user(default_cache, func):
     user, data = _get_user_data()
     service = make_service(slycache)(data)
 
@@ -70,27 +73,29 @@ def test_update_user(default_cache):
     assert old_username not in default_cache
     assert new_username not in default_cache
 
-    service.update_user(user.id, new_username)
+    getattr(service, func)(user.id, new_username)
 
     assert old_username not in default_cache
     assert user.id in default_cache
     assert new_username in default_cache
 
 
-def test_save_with_multiple(default_cache):
+@pytest.mark.parametrize("func", ["save_with_multiple", "save_with_multiple_simple"])
+def test_save_with_multiple(default_cache, func):
     user, _ = _get_user_data()
     service = make_service(slycache)()
 
     assert user.id not in default_cache
     assert user.username not in default_cache
 
-    service.save_with_multiple(user)
+    getattr(service, func)(user)
 
     assert user.id in default_cache
     assert user.username in default_cache
 
 
-def test_delete_multiple(default_cache):
+@pytest.mark.parametrize("func", ["delete_multiple", "delete_multiple_simple"])
+def test_delete_multiple(default_cache, func):
     user, data = _get_user_data()
     service = make_service(slycache)(data)
     default_cache.init(data)
@@ -98,7 +103,7 @@ def test_delete_multiple(default_cache):
     assert user.id in default_cache
     assert user.username in default_cache
 
-    service.delete_multiple(user)
+    getattr(service, func)(user)
 
     assert user.id not in default_cache
     assert user.username not in default_cache
@@ -125,8 +130,8 @@ def make_service(cache: Slycache):
 
         @cache.caching(
             result=[
-                CacheResult(key="{user_id}", skip_get=True),
-                CacheResult(key="{username}", skip_get=True),
+                CacheResult(keys=["{user_id}"], skip_get=True),
+                CacheResult(keys=["{username}"], skip_get=True),
             ]
         )
         def update_user(self, user_id: str, username: str):
@@ -135,39 +140,51 @@ def make_service(cache: Slycache):
             self.data[user_id] = user
             return user
 
-        @cache.cache_result(key="{user_id}")
+        @cache.cache_result(keys=["{user_id}", "{username}"], skip_get=True)
+        def update_user_simple(self, user_id: str, username: str):
+            user = self.data[user_id]
+            user.username = username
+            self.data[user_id] = user
+            return user
+
+        @cache.cache_result(keys="{user_id}")
         def get_user_by_id(self, user_id) -> User:
             try:
                 return self.data[user_id]
             except KeyError:
                 pass
 
-        @cache.cache_result(key="{username}")
+        @cache.cache_result(keys="{username}")
         def get_user_by_username(self, username) -> User:
             try:
                 return self.data[username]
             except KeyError:
                 pass
 
-        @cache.cache_put(key="{user.id}", cache_value="user")
+        @cache.cache_put(keys="{user.id}", cache_value="user")
         def save_with_cache_value_param(self, user: User):
             self.data[user.id] = user
             self.data[user.username] = user
 
         @cache.caching(put=[
-            CachePut(key="{user.id}"),
-            CachePut(key="{user.username}"),
+            CachePut(keys=["{user.id}"]),
+            CachePut(keys=["{user.username}"]),
         ])
         def save_with_multiple(self, user: User):
             self.data[user.id] = user
             self.data[user.username] = user
 
-        @cache.cache_put(key="{user.id}")
+        @cache.cache_put(keys=["{user.id}", "{user.username}"])
+        def save_with_multiple_simple(self, user: User):
+            self.data[user.id] = user
+            self.data[user.username] = user
+
+        @cache.cache_put(keys="{user.id}")
         def save_no_cache_value_param(self, user: User):
             self.data[user.id] = user
             self.data[user.username] = user
 
-        @cache.cache_remove(key="{user.id}")
+        @cache.cache_remove(keys="{user.id}")
         def delete(self, user: User):
             try:
                 del self.data[user.id]
@@ -180,10 +197,22 @@ def make_service(cache: Slycache):
                 pass
 
         @cache.caching(remove=[
-            CacheRemove(key="{user.id}"),
-            CacheRemove(key="{user.username}"),
+            CacheRemove(keys=["{user.id}"]),
+            CacheRemove(keys=["{user.username}"]),
         ])
         def delete_multiple(self, user: User):
+            try:
+                del self.data[user.id]
+            except KeyError:
+                pass
+
+            try:
+                del self.data[user.username]
+            except KeyError:
+                pass
+
+        @cache.cache_remove(keys=["{user.id}", "{user.username}"])
+        def delete_multiple_simple(self, user: User):
             try:
                 del self.data[user.id]
             except KeyError:

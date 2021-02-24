@@ -54,7 +54,7 @@ def _test_cache(default_cache, other_cache, cache, timeout, prefix, override_at_
         custom_cache = slycache.with_defaults(**overrides)
         overrides = {}
 
-    cached_func = custom_cache.cache_result(key="{arg}", **overrides)(result_func)
+    cached_func = custom_cache.cache_result(keys="{arg}", **overrides)(result_func)
 
     arg = uuid.uuid4().hex
     assert cached_func(arg) == result

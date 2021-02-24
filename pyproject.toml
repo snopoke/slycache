@@ -37,7 +37,11 @@ sphinx = "*"
 yapf = "*"
 nox = "*"
 
-
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --tb=short --doctest-modules"
+python_files = "tests.py test_*.py *_tests.py"
+log_level = "debug"
