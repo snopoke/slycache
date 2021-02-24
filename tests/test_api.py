@@ -2,7 +2,9 @@ import uuid
 
 import pytest
 
+from slycache import CacheResult, CachePut
 from slycache.const import DEFAULT_CACHE_NAME, NOTSET
+from slycache.key_generator import generate_key
 from slycache.slycache import ProxyWithDefaults, caches, slycache
 
 
@@ -11,7 +13,7 @@ def result_func(arg):  # pylint: disable=unused-argument
 
 
 @pytest.mark.parametrize(
-    "cache, timeout, prefix", [
+    "cache, timeout, namespace", [
         (Ellipsis, Ellipsis, Ellipsis),
         ("default", Ellipsis, Ellipsis),
         ("other", Ellipsis, Ellipsis),
@@ -19,32 +21,32 @@ def result_func(arg):  # pylint: disable=unused-argument
         (Ellipsis, Ellipsis, "all_your_base"),
     ]
 )  # pylint: disable=too-many-locals
-def test_cache_result_with_defaults(default_cache, other_cache, cache, timeout, prefix):
-    _test_cache(default_cache, other_cache, cache, timeout, prefix, True)
+def test_cache_result_with_defaults(default_cache, other_cache, cache, timeout, namespace):
+    _test_cache(default_cache, other_cache, cache, timeout, namespace, True)
 
 
 @pytest.mark.parametrize(
-    "cache, timeout", [
-        (Ellipsis, Ellipsis),
-        ("default", Ellipsis),
-        ("other", Ellipsis),
-        (Ellipsis, 5),
-        (Ellipsis, Ellipsis),
+    "cache, timeout, namespace", [
+        (Ellipsis, Ellipsis, Ellipsis),
+        ("default", Ellipsis, Ellipsis),
+        ("other", Ellipsis, Ellipsis),
+        (Ellipsis, 5, Ellipsis),
+        (Ellipsis, Ellipsis, "ns1"),
     ]
 )  # pylint: disable=too-many-locals
-def test_cache_result_overwrite_defaults(default_cache, other_cache, cache, timeout):
-    _test_cache(default_cache, other_cache, cache, timeout, Ellipsis, False)
+def test_cache_result_overwrite_defaults(default_cache, other_cache, cache, timeout, namespace):
+    _test_cache(default_cache, other_cache, cache, timeout, namespace, False)
 
 
 # pylint: disable=too-many-locals
-def _test_cache(default_cache, other_cache, cache, timeout, prefix, override_at_class_level):
+def _test_cache(default_cache, other_cache, cache, timeout, namespace, override_at_class_level):
     result = uuid.uuid4().hex
     result_func.return_value = result
 
     cache_alias = cache if cache is not Ellipsis else DEFAULT_CACHE_NAME
 
     overrides = {}
-    for k, v in {"cache_name": cache, "timeout": timeout, "prefix": prefix}.items():
+    for k, v in {"cache_name": cache, "timeout": timeout, "namespace": namespace}.items():
         if v is not Ellipsis:
             overrides[k] = v
 
@@ -62,7 +64,8 @@ def _test_cache(default_cache, other_cache, cache, timeout, prefix, override_at_
     else:
         cache_fixture = other_cache
 
-    expected_key = f"{prefix}{arg}" if prefix is not Ellipsis else arg
+    ns = namespace if namespace is not Ellipsis else None
+    expected_key = generate_key(ns, "{arg}", {"arg": arg})
     entry = cache_fixture.get_entry(expected_key)
     assert cache_fixture.get(expected_key) == result, entry
 
@@ -71,9 +74,9 @@ def _test_cache(default_cache, other_cache, cache, timeout, prefix, override_at_
     assert entry.timeout == expected_timeout
 
 
-def test_with_defaults_prefix(clean_slate):
-    prefix = clean_slate.with_defaults(prefix="v1_")
-    assert prefix._proxy == ProxyWithDefaults(  # pylint: disable=protected-access
+def test_with_defaults_namespace(clean_slate):
+    namespace = clean_slate.with_defaults(namespace="v1_")
+    assert namespace._proxy == ProxyWithDefaults(  # pylint: disable=protected-access
         DEFAULT_CACHE_NAME,
         NOTSET,
         "v1_",
@@ -104,18 +107,18 @@ def test_with_defaults_key_generator(clean_slate):
 
 def test_with_defaults_carry_forward(clean_slate):
     key_generator = lambda x: x  # noqa
-    other = clean_slate.with_defaults(cache_name="other", timeout=2, prefix="v1_", key_generator=key_generator)
+    other = clean_slate.with_defaults(cache_name="other", timeout=2, namespace="v1_", key_generator=key_generator)
     assert other._proxy == ProxyWithDefaults("other", 2, "v1_", False)  # pylint: disable=protected-access
     assert other._key_generator == key_generator  # pylint: disable=protected-access
 
     new_key_generator = lambda x: x + "1"  # noqa
-    other1 = other.with_defaults(timeout=10, prefix="v2_", key_generator=new_key_generator)
+    other1 = other.with_defaults(timeout=10, namespace="v2_", key_generator=new_key_generator)
     assert other1._proxy == ProxyWithDefaults("other", 10, "v2_", False)  # pylint: disable=protected-access
     assert other1._key_generator == new_key_generator  # pylint: disable=protected-access
 
     new_key_generator = lambda x: x + "2"  # noqa
     default1 = other.with_defaults(
-        cache_name=DEFAULT_CACHE_NAME, timeout=5, prefix="v3_", key_generator=new_key_generator
+        cache_name=DEFAULT_CACHE_NAME, timeout=5, namespace="v3_", key_generator=new_key_generator
     )
     assert default1._proxy == ProxyWithDefaults(  # pylint: disable=protected-access
         DEFAULT_CACHE_NAME,
@@ -124,3 +127,43 @@ def test_with_defaults_carry_forward(clean_slate):
         False
     )
     assert default1._key_generator == new_key_generator  # pylint: disable=protected-access
+
+
+def test_clear_cache(default_cache):
+    results = ["1"]
+
+    @slycache.cache_result(keys="{arg}")
+    def expensive(arg):
+        return results.pop()
+
+    assert expensive(1) == "1"
+    assert "1" in default_cache
+
+    expensive.clear_cache(1)
+    assert "1" not in default_cache
+
+
+def test_clear_cache_multiple(default_cache, other_cache):
+    results = ["1"]
+
+    @slycache.caching(result=[
+        CacheResult(keys=["{arg}"], skip_get=True),
+        CacheResult(keys=["other_{arg}"], skip_get=True, cache_name="other"),
+    ], put=[
+        CachePut(keys=["put_{arg}"]),
+        CachePut(keys=["other_put_{arg}"], cache_name="other")
+    ])
+    def expensive(arg):
+        return results.pop()
+
+    assert expensive(1) == "1"
+    assert "1" in default_cache
+    assert "other_1" in other_cache
+    assert "put_1" in default_cache
+    assert "other_put_1" in other_cache
+
+    expensive.clear_cache(1)
+    assert "1" not in default_cache
+    assert "other_1" not in other_cache
+    assert "put_1" not in default_cache
+    assert "other_put_1" not in other_cache

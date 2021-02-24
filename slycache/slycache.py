@@ -158,6 +158,7 @@ class Slycache:
         keys: Union[str, List[str]],
         cache_name: Optional[str] = None,
         timeout: Union[int, NotSet] = NOTSET,
+        namespace: Union[str, NotSet] = NOTSET,
         skip_get: bool = False
     ):
         """
@@ -196,6 +197,8 @@ class Slycache:
                 operation.
             timeout (int, optional): If set this overrides the currently configured timeout for this specific
                 operation.
+            namespace (str, optional): If set this overrides the currently configured namespace for this specific
+                operation.
             skip_get (bool, optional): If set to true the pre-invocation is
                 skipped and the decorated method is always executed with the returned value
                 being cached as normal. This is useful for create or update methods which
@@ -205,7 +208,7 @@ class Slycache:
         """
         if isinstance(keys, str):
             keys = [keys]
-        invocation = CacheResult(keys, cache_name, timeout, skip_get)
+        invocation = CacheResult(keys, cache_name, namespace, timeout, skip_get)
         return self.caching(func, result=[invocation])
 
     def cache_put(
@@ -215,7 +218,8 @@ class Slycache:
         keys: Union[str, List[str]],
         cache_value: Optional[str] = None,
         cache_name: Optional[str] = None,
-        timeout: Union[int, NotSet] = NOTSET
+        timeout: Union[int, NotSet] = NOTSET,
+        namespace: Union[str, NotSet] = NOTSET
     ):
         """
         This is a function level decorator used to mark function where one of the function arguments
@@ -250,13 +254,22 @@ class Slycache:
                 operation.
             timeout (int, optional): If set this overrides the currently configured timeout for this specific
                 operation.
+            namespace (str, optional): If set this overrides the currently configured namespace for this specific
+                operation.
         """
         if isinstance(keys, str):
             keys = [keys]
-        invocation = CachePut(keys, cache_name=cache_name, cache_value=cache_value, timeout=timeout)
+        invocation = CachePut(keys, cache_name, namespace, cache_value, timeout)
         return self.caching(func, put=[invocation])
 
-    def cache_remove(self, func=None, *, keys: Union[str, List[str]], cache_name: Optional[str] = None):
+    def cache_remove(
+        self,
+        func=None,
+        *,
+        keys: Union[str, List[str]],
+        cache_name: Optional[str] = None,
+        namespace: Union[str, NotSet] = NOTSET,
+    ):
         """
         This is a function level decorator used to mark function where the invocation results
         in an entry (or entries) being removed from the specified cache.
@@ -281,10 +294,12 @@ class Slycache:
                 to actual cache keys using the currently active key generator. See :ref:`key-generator`
             cache_name (str, optional): If set this overrides the currently configured cache for this specific
                 operation.
+            namespace (str, optional): If set this overrides the currently configured namespace for this specific
+                operation.
         """
         if isinstance(keys, str):
             keys = [keys]
-        invocation = CacheRemove(keys, cache_name=cache_name)
+        invocation = CacheRemove(keys, cache_name, namespace)
         return self.caching(func, remove=[invocation])
 
     def caching(

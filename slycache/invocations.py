@@ -20,6 +20,7 @@ class CacheInvocation:
     """
     keys: List[str]
     cache_name: Optional[str] = None
+    namespace: Union[int, NotSet] = NOTSET
 
     def get_updated_proxy(self, proxy: "ProxyWithDefaults") -> "ProxyWithDefaults":
         overrides = self._get_overrides()
@@ -31,6 +32,8 @@ class CacheInvocation:
         overrides = {}
         if self.cache_name:
             overrides["cache_name"] = self.cache_name
+        if self.namespace is not NOTSET:
+            overrides["namespace"] = self.namespace
         return overrides
 
 

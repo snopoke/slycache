@@ -14,24 +14,53 @@ slycache
         :alt: Documentation Status
 
 
+A caching API for python loosely modeled after the Java Caching API (JSR107_).
+
+.. _JSR107: https://docs.google.com/document/d/1YZ-lrH6nW871Vd9Z34Og_EqbX_kxxJi55UrSn4yL2Ak/edit
 
 
-Python cache library loosly modeled after the Java `JSR107 spec <https://docs.google.com/document/d/1YZ-lrH6nW871Vd9Z34Og_EqbX_kxxJi55UrSn4yL2Ak/edit>`_
-
-
-* Free software: BSD-3-Clause
 * Documentation: https://slycache.readthedocs.io.
 
 
 Features
 --------
 
-* TODO
+* Simple decorator based API
+* Easily adapt any cache backend to work with slycache
 
-Credits
--------
 
-This package was created with Cookiecutter_ and the `briggySmalls/cookiecutter-pypackage`_ project template.
+Basic Usage
+-----------
 
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`briggySmalls/cookiecutter-pypackage`: https://github.com/briggySmalls/cookiecutter-pypackage
+Start by registering a cache backend::
+
+    caches.register("default", my_cache_backend)
+
+Define a key namespace::
+
+    # define a key namespace
+    user_cache = slycache.with_defaults(namespace="user")
+
+Use the cache on methods and functions::
+
+    @user_cache.cache_result(keys="{username}")
+    def get_user_by_username(username):
+        ...
+
+    @user_cache.cache_result(keys="{user_id}")
+    def get_user_by_id(user_id):
+        ...
+
+    @user_cache.cache_put(keys=[
+        "{user.username}", "{user.user_id}"
+    ])
+    def save_user(user):
+        ...
+
+    @user_cache.cache_remove(keys=[
+        "{user.username}", "{user.user_id}"
+    ])
+    def delete_user(user):
+        ...
+
+For more advanced usage see the documentation: https://slycache.readthedocs.io
