@@ -1,13 +1,13 @@
 import pytest
 
-from slycache.slycache import DEFAULT_CACHE_ALIAS, caches
+from slycache.slycache import DEFAULT_CACHE_NAME, caches, Slycache
 from tests.mock_cache import DictCache
 
 
 @pytest.fixture
 def default_cache():
-    cache = DictCache(DEFAULT_CACHE_ALIAS)
-    caches.replace(DEFAULT_CACHE_ALIAS, cache)
+    cache = DictCache(DEFAULT_CACHE_NAME)
+    caches.replace(DEFAULT_CACHE_NAME, cache)
     return cache
 
 
@@ -16,3 +16,15 @@ def other_cache():
     cache = DictCache("other")
     caches.replace("other", cache)
     return cache
+
+
+@pytest.fixture
+def clean_slate():
+    for name in caches.registered_names():
+        caches.deregister(name)
+
+    assert caches._caches == {}
+
+    default = Slycache()
+    assert default._proxy is None
+    return default
