@@ -2,6 +2,7 @@ import inspect
 
 
 class StringFormatGenerator:
+    """Key"""
 
     @staticmethod
     def validate(template, fn):  # pylint: disable=unused-argument
@@ -20,8 +21,8 @@ class StringFormatGenerator:
             raise ValueError(f"'key' must be None or a string: {template}")
 
     @staticmethod
-    def generate(prefix, key_template, fn, callargs) -> str:
+    def generate(prefix, key_template, fn, call_args) -> str:
         arg_names = inspect.getfullargspec(fn).args
-        valid_args = {name: callargs[name] for name in arg_names}
+        valid_args = {name: call_args[name] for name in arg_names}
         template_format = key_template.format(**valid_args)
         return template_format if prefix is None else f"{prefix}{template_format}"

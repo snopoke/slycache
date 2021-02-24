@@ -5,8 +5,8 @@ from dataclasses import dataclass, replace
 from functools import wraps
 from typing import Any, Callable, List, Optional, Union
 
-from .actions import (CacheAction, CachePutAction, CacheRemoveAction,
-                      CacheResultAction, CombinedAction)
+from .actions import (ActionExecutor, CacheAction, CachePutAction,
+                      CacheRemoveAction, CacheResultAction)
 from .const import DEFAULT_CACHE_NAME, NOTSET, NotSet
 from .exceptions import InvalidCacheError, SlycacheException
 from .interface import CacheInterface
@@ -116,12 +116,12 @@ class Slycache:
 
     def __init__(self, proxy: ProxyWithDefaults = None, key_formatter=None):
         self._proxy = proxy
-        self._key_formatter = key_formatter or StringFormatGenerator
+        self._key_generator = key_formatter or StringFormatGenerator
         self._merged = not self._proxy
 
     def with_defaults(self, **defaults):
         cache_name = defaults.pop("cache_name", None)
-        key_formatter = defaults.pop("key_formatter", self._key_formatter)
+        key_formatter = defaults.pop("key_formatter", self._key_generator)
         if not cache_name and self._proxy:
             new_proxy = replace(self._proxy, **defaults)
         else:
@@ -330,19 +330,19 @@ class Slycache:
             if not callable(func):
                 raise SlycacheException(f"Decorator must be used on a function: {func!r}")
 
-            action = CombinedAction(func, actions, self._key_formatter, self._cache_proxy)
+            action = ActionExecutor(func, actions, self._key_generator, self._cache_proxy)
             action.validate()
 
             @wraps(func)
             def _inner(*args, **kwargs):
-                callargs = inspect.signature(func).bind(*args, **kwargs).arguments
+                call_args = inspect.signature(func).bind(*args, **kwargs).arguments
 
-                result = action.get_cached(callargs, default=Ellipsis)
-                if result is not Ellipsis:
+                result = action.get_cached(call_args)
+                if result is not NOTSET:
                     return result
 
                 result = func(*args, **kwargs)
-                action.call(result, callargs)
+                action.call(result, call_args)
                 return result
 
             return _inner

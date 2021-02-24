@@ -8,8 +8,16 @@ if TYPE_CHECKING:
     from .slycache import ProxyWithDefaults
 
 
-@dataclass
+@dataclass(frozen=True)
 class CacheInvocation:
+    """Base invocation class.
+
+    Invocations classes are used to store the parameters for
+    cache actions. Each invocation type has a corresponding action type.
+
+    See also:
+        :meth:slycache.cations.CacheAction
+    """
     keys: List[str]
     cache_name: Optional[str] = None
 
@@ -26,7 +34,7 @@ class CacheInvocation:
         return overrides
 
 
-@dataclass
+@dataclass(frozen=True)
 class CacheResult(CacheInvocation):
     """
     Data class used to contain the parameters for a ``cache_result`` operation.
@@ -44,7 +52,7 @@ class CacheResult(CacheInvocation):
         return overrides
 
 
-@dataclass
+@dataclass(frozen=True)
 class CachePut(CacheInvocation):
     """
     Data class used to contain the parameters for a ``cache_put`` operation.
