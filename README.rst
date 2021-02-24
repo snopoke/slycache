@@ -6,8 +6,8 @@ slycache
 .. image:: https://img.shields.io/pypi/v/slycache.svg
         :target: https://pypi.python.org/pypi/slycache
 
-.. image:: https://img.shields.io/travis/snopoke/slycache.svg
-        :target: https://travis-ci.com/snopoke/slycache
+.. image:: https://github.com/snopoke/slycache/actions/workflows/ci.yml/badge.svg
+        :target: https://github.com/snopoke/slycache/actions/workflows/ci.yml
 
 .. image:: https://readthedocs.org/projects/slycache/badge/?version=latest
         :target: https://slycache.readthedocs.io/en/latest/?badge=latest

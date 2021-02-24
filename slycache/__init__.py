@@ -1,62 +1,3 @@
-"""Top-level package for slycache.
-
-.. autofunction::  slycache.Slycache.cache_result
-
-|
-
-.. autofunction::  slycache.Slycache.cache_put
-
-|
-
-.. autofunction::  slycache.Slycache.cache_remove
-
-|
-
-.. autofunction::  slycache.Slycache.caching
-
-.. _with_defaults:
-
-Creating caches with custom defaults
-====================================
-
-.. autofunction::  slycache.Slycache.with_defaults
-
-
-.. _invocations:
-
-Invocation Parameters
-=====================
-
-.. autoclass::  slycache.CacheResult
-
-|
-
-.. autoclass::  slycache.CachePut
-
-|
-
-.. autoclass::  slycache.CacheRemove
-
-
-.. _cache_interface:
-
-Cache Interface
-===============
-
-.. autoclass::  slycache.CacheInterface
-    :members:
-
-.. _key-generator:
-
-Key Generators
-==============
-.. autoclass::  slycache.KeyGenerator
-    :members:
-
-|
-
-"""
-
 __author__ = """snopoke"""
 __version__ = '0.1.0'
 
@@ -75,4 +16,5 @@ __all__ = [
     "CacheInterface",
     "SlycacheException",
     "InvalidCacheError",
+    "KeyGenerator",
 ]
