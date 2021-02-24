@@ -1,11 +1,13 @@
+import hashlib
 import inspect
+from inspect import FullArgSpec
 
 
 class StringFormatKeyGenerator:
     """Key"""
 
     @staticmethod
-    def validate(template, fn):  # pylint: disable=unused-argument
+    def validate(template, func):  # pylint: disable=unused-argument
         # TODO: parse key to check params  # pylint: disable=fixme
         # arg_names = inspect.getfullargspec(func).args
         # vary_on = [part.split('.') for part in vary_on]
@@ -21,10 +23,24 @@ class StringFormatKeyGenerator:
             raise ValueError(f"'key' must be None or a string: {template}")
 
     @staticmethod
-    def generate(namespace, key_template, fn, call_args) -> str:
-        arg_names = inspect.getfullargspec(fn).args
-        valid_args = {name: call_args[name] for name in arg_names}
+    def generate(namespace, key_template, func, call_args) -> str:
+        arg_spec = inspect.getfullargspec(func)
+        valid_args = {name: call_args[name] for name in arg_spec.args + arg_spec.kwonlyargs}
+        if namespace is None:
+            namespace = get_namespace(func, arg_spec)
         return generate_key(namespace, key_template, valid_args)
+
+
+def get_namespace(func, arg_spec: FullArgSpec, max_len=60) -> str:
+    args = ",".join(arg_spec.args + arg_spec.kwonlyargs)
+    full_namespace = f"{func.__name__}:{args}"
+    if len(full_namespace) <= max_len:
+        return full_namespace
+    return full_namespace[:max_len - 8] + hash(full_namespace, 8)
+
+
+def hash(value, length=8):
+    return hashlib.md5(value.encode('utf-8')).hexdigest()[-length:]
 
 
 def generate_key(namespace, key_template, call_args):
