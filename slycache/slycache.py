@@ -120,6 +120,15 @@ class Slycache:
         self._merged = not self._proxy
 
     def with_defaults(self, **defaults):
+        """Return a new Slycache object with updated defaults.
+
+        Arguments:
+            cache_name: (str, optional): name of the cache to use
+            key_generator: (KeyGenerator, optional): :class:`slycache.KeyGenerator` object to use for generating
+                and validating keys.
+            timeout: (int, optional): default timeout to use for keys
+            prefix: (str, optional): key prefix to use
+        """
         cache_name = defaults.pop("cache_name", None)
         key_generator = defaults.pop("key_generator", self._key_generator)
         if not cache_name and self._proxy:
@@ -306,12 +315,9 @@ class Slycache:
                 ...
 
         Args:
-            result (:obj:`list` of :class:`CacheResult`, optional): ``cache_result`` operations to execute.
-                See :meth:`slycache.Slycache.cache_result`
-            put (:obj:`list` of :class:`CachPut`, optional): ``cache_put`` operations to execute
-                See :meth:`slycache.Slycache.cache_put`
-            remove (:obj:`list` of :class:`CachRemove`, optional): ``cache_remove`` operations to execute
-                See :meth:`slycache.Slycache.cache_remove`
+            result (:obj:`list` of :class:`slycache.CacheResult`, optional): ``cache_result`` operations to execute.
+            put (:obj:`list` of :class:`slycache.CachePut`, optional): ``cache_put`` operations to execute
+            remove (:obj:`list` of :class:`slycache.CacheRemove`, optional): ``cache_remove`` operations to execute
         """
 
         actions = [

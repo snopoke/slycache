@@ -5,7 +5,15 @@ class CacheInterface(Protocol):
     """Protocol class for the cache interface required by Slycache"""
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:
-        """Get a value from the cache and return it or else the default value"""
+        """Get a value from the cache and return it or else the default value.
+
+        Arguments:
+            key: the cache key
+            default: value to return if no value found in the cache
+
+        Returns:
+            any: the cache value or ``default``
+        """
         raise NotImplementedError
 
     def set(self, key: str, value: Any, timeout: Optional[int] = None):
@@ -19,7 +27,11 @@ class CacheInterface(Protocol):
         raise NotImplementedError
 
     def delete(self, key: str):
-        """Delete value from cache"""
+        """Delete value from cache.
+
+        Arguments:
+            key: the key to delete
+        """
         raise NotImplementedError
 
 

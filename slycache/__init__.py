@@ -1,11 +1,5 @@
 """Top-level package for slycache.
 
-.. _key-generator:
-
-Key Generators
-==============
-something
-
 .. autofunction::  slycache.Slycache.cache_result
 
 |
@@ -20,11 +14,18 @@ something
 
 .. autofunction::  slycache.Slycache.caching
 
-|
+.. _with_defaults:
+
+Creating caches with custom defaults
+====================================
 
 .. autofunction::  slycache.Slycache.with_defaults
 
-|
+
+.. _invocations:
+
+Invocation Parameters
+=====================
 
 .. autoclass::  slycache.CacheResult
 
@@ -36,13 +37,31 @@ something
 
 .. autoclass::  slycache.CacheRemove
 
+
+.. _cache_interface:
+
+Cache Interface
+===============
+
+.. autoclass::  slycache.CacheInterface
+    :members:
+
+.. _key-generator:
+
+Key Generators
+==============
+.. autoclass::  slycache.KeyGenerator
+    :members:
+
+|
+
 """
 
 __author__ = """snopoke"""
 __version__ = '0.1.0'
 
 from .exceptions import InvalidCacheError, SlycacheException
-from .interface import CacheInterface
+from .interface import CacheInterface, KeyGenerator
 from .invocations import CachePut, CacheRemove, CacheResult
 from .slycache import Slycache, caches, slycache
 
