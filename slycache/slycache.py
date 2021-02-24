@@ -5,7 +5,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, replace
 from functools import wraps
-from typing import Any, List, Optional, Protocol, Callable, Final, Union
+from typing import Any, Callable, Final, List, Optional, Protocol, Union
 
 log = logging.getLogger("slycache")
 
@@ -131,7 +131,10 @@ class CacheHolder:
                 default_timeout: int = None,
                 default_prefix: Union[str, NotSet] = NOTSET):
         self._caches[name] = cache_provider
-        self._proxies[name] = ProxyWithDefaults(name, timeout=default_timeout, prefix=default_prefix, _merged=True)
+        self._proxies[name] = ProxyWithDefaults(name,
+                                                timeout=default_timeout,
+                                                prefix=default_prefix,
+                                                _merged=True)
 
     def deregister(self, name: str):
         try:
@@ -224,8 +227,8 @@ class CacheResultAction(CacheAction):
             return
 
         proxy.set(cache_key, value)
-        log.debug("cache_set: cache=%s, function=%s, key=%s",
-                  proxy.cache_name, func.__name__, cache_key)
+        log.debug("cache_set: cache=%s, function=%s, key=%s", proxy.cache_name,
+                  func.__name__, cache_key)
 
     def _get_value(self, func, callargs, result):  # pylint: disable=unused-argument,no-self-use
         return result
@@ -267,7 +270,8 @@ class Slycache:
         if not cache_name and self._proxy:
             new_proxy = replace(self._proxy, **defaults)
         else:
-            new_proxy = ProxyWithDefaults(cache_name or DEFAULT_CACHE_NAME, **defaults)
+            new_proxy = ProxyWithDefaults(cache_name or DEFAULT_CACHE_NAME,
+                                          **defaults)
 
         return Slycache(new_proxy, key_formatter)
 
@@ -325,7 +329,8 @@ class Slycache:
         ]
         return self._call(func, actions)
 
-    def _call(self, func: Optional[Callable], actions: List[CacheAction]) -> Callable:
+    def _call(self, func: Optional[Callable],
+              actions: List[CacheAction]) -> Callable:
         self.validate()
 
         def _decorator(func):
@@ -346,9 +351,9 @@ class Slycache:
                 bound_args = inspect.signature(func).bind(*args, **kwargs)
 
                 def format_key(key):
-                    return self._key_formatter.format(self._cache_proxy.key_prefix, key,
-                                                      func,
-                                                      bound_args.arguments)
+                    return self._key_formatter.format(
+                        self._cache_proxy.key_prefix, key, func,
+                        bound_args.arguments)
 
                 keys = {
                     format_key(action.invocation.key): action

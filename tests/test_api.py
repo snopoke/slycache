@@ -4,7 +4,7 @@ import uuid
 import pytest
 
 from slycache import caches, slycache
-from slycache.slycache import DEFAULT_CACHE_NAME, Slycache, ProxyWithDefaults, NOTSET
+from slycache.slycache import DEFAULT_CACHE_NAME, NOTSET, ProxyWithDefaults
 
 
 def result_func(arg):  # pylint: disable=unused-argument
@@ -19,7 +19,7 @@ def result_func(arg):  # pylint: disable=unused-argument
     (Ellipsis, Ellipsis, "all_your_base"),
 ])  # pylint: disable=too-many-locals
 def test_cache_result_with_defaults(default_cache, other_cache, cache, timeout,
-                                  prefix):
+                                    prefix):
     _test_cache(default_cache, other_cache, cache, timeout, prefix, True)
 
 
@@ -31,7 +31,7 @@ def test_cache_result_with_defaults(default_cache, other_cache, cache, timeout,
     (Ellipsis, Ellipsis),
 ])  # pylint: disable=too-many-locals
 def test_cache_result_overwrite_defaults(default_cache, other_cache, cache,
-                                       timeout):
+                                         timeout):
     _test_cache(default_cache, other_cache, cache, timeout, Ellipsis, False)
 
 
@@ -78,37 +78,48 @@ def _test_cache(default_cache, other_cache, cache, timeout, prefix,
 
 def test_with_defaults_prefix(clean_slate):
     prefix = clean_slate.with_defaults(prefix="v1_")
-    assert prefix._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, NOTSET, "v1_", False)
+    assert prefix._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, NOTSET,  # pylint: disable=protected-access
+                                              "v1_", False)
 
 
 def test_with_defaults_name(clean_slate):
     other = clean_slate.with_defaults(cache_name="other")
-    assert other._proxy == ProxyWithDefaults("other", NOTSET, NOTSET, False)
+    assert other._proxy == ProxyWithDefaults("other", NOTSET, NOTSET, False)  # pylint: disable=protected-access
 
 
 def test_with_defaults_timeout(clean_slate):
     timeout = clean_slate.with_defaults(timeout=10)
-    assert timeout._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, 10, NOTSET, False)
+    assert timeout._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, 10, NOTSET,  # pylint: disable=protected-access
+                                               False)
 
 
 def test_with_defaults_key_formatter(clean_slate):
-    new_key_formatter = lambda x: x
+    new_key_formatter = lambda x: x  # noqa
     fourth = clean_slate.with_defaults(key_formatter=new_key_formatter)
-    assert fourth._key_formatter == new_key_formatter
+    assert fourth._key_formatter == new_key_formatter  # pylint: disable=protected-access
 
 
 def test_with_defaults_carry_forward(clean_slate):
-    key_formatter = lambda x: x
-    other = clean_slate.with_defaults(cache_name="other", timeout=2, prefix="v1_", key_formatter=key_formatter)
-    assert other._proxy == ProxyWithDefaults("other", 2, "v1_", False)
-    assert other._key_formatter == key_formatter
+    key_formatter = lambda x: x  # noqa
+    other = clean_slate.with_defaults(cache_name="other",
+                                      timeout=2,
+                                      prefix="v1_",
+                                      key_formatter=key_formatter)
+    assert other._proxy == ProxyWithDefaults("other", 2, "v1_", False)  # pylint: disable=protected-access
+    assert other._key_formatter == key_formatter  # pylint: disable=protected-access
 
-    new_key_formatter = lambda x: x + "1"
-    other1 = other.with_defaults(timeout=10, prefix="v2_", key_formatter=new_key_formatter)
-    assert other1._proxy == ProxyWithDefaults("other", 10, "v2_", False)
-    assert other1._key_formatter == new_key_formatter
+    new_key_formatter = lambda x: x + "1"  # noqa
+    other1 = other.with_defaults(timeout=10,
+                                 prefix="v2_",
+                                 key_formatter=new_key_formatter)
+    assert other1._proxy == ProxyWithDefaults("other", 10, "v2_", False)  # pylint: disable=protected-access
+    assert other1._key_formatter == new_key_formatter  # pylint: disable=protected-access
 
-    new_key_formatter = lambda x: x + "2"
-    default1 = other.with_defaults(cache_name=DEFAULT_CACHE_NAME, timeout=5, prefix="v3_", key_formatter=new_key_formatter)
-    assert default1._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, 5, "v3_", False)
-    assert default1._key_formatter == new_key_formatter
+    new_key_formatter = lambda x: x + "2"  # noqa
+    default1 = other.with_defaults(cache_name=DEFAULT_CACHE_NAME,
+                                   timeout=5,
+                                   prefix="v3_",
+                                   key_formatter=new_key_formatter)
+    assert default1._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, 5, "v3_",  # pylint: disable=protected-access
+                                                False)
+    assert default1._key_formatter == new_key_formatter  # pylint: disable=protected-access

@@ -4,8 +4,7 @@ from dataclasses import dataclass
 from typing import Dict, Tuple
 
 from slycache import slycache
-from slycache.slycache import (CachePut, CacheRemove,
-                               CacheResult, Slycache)
+from slycache.slycache import CachePut, CacheRemove, CacheResult, Slycache
 
 
 def test_service_save_with_cache_value_param(default_cache):  # pylint: disable=unused-argument
@@ -79,7 +78,7 @@ def test_update_user(default_cache):
 
 
 def test_save_with_multiple(default_cache):
-    user, data = _get_user_data()
+    user, _ = _get_user_data()
     service = make_service(slycache)()
 
     assert user.id not in default_cache
