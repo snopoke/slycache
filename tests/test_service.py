@@ -117,14 +117,18 @@ class User:
 
 
 def make_service(cache: Slycache):
+
     class Service:
+
         def __init__(self, data: Dict[str, User] = None):
             self.data = data or {}
 
-        @cache.caching(result=[
-            CacheResult(key="{user_id}", skip_get=True),
-            CacheResult(key="{username}", skip_get=True),
-        ])
+        @cache.caching(
+            result=[
+                CacheResult(key="{user_id}", skip_get=True),
+                CacheResult(key="{username}", skip_get=True),
+            ]
+        )
         def update_user(self, user_id: str, username: str):
             user = self.data[user_id]
             user.username = username
