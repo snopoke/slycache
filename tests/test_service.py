@@ -5,8 +5,8 @@ from typing import Dict, Tuple
 
 import pytest
 
-from slycache import slycache
-from slycache.slycache import CachePut, CacheRemove, CacheResult, Slycache
+from slycache import CachePut, CacheRemove, CacheResult, slycache
+from slycache.slycache import Slycache
 
 
 def test_service_save_with_cache_value_param(default_cache):  # pylint: disable=unused-argument

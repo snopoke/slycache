@@ -1,10 +1,9 @@
-"""Test the slycache api"""
 import uuid
 
 import pytest
 
-from slycache import caches, slycache
-from slycache.slycache import DEFAULT_CACHE_NAME, NOTSET, ProxyWithDefaults
+from slycache.const import DEFAULT_CACHE_NAME, NOTSET
+from slycache.slycache import ProxyWithDefaults, caches, slycache
 
 
 def result_func(arg):  # pylint: disable=unused-argument

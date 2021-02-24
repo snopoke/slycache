@@ -1,69 +1,19 @@
 """Main module"""
-import enum
 import inspect
 import logging
-from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, replace
-from functools import cached_property, wraps
-from typing import Any, Callable, Final, List, Optional, Protocol, Union
+from functools import wraps
+from typing import Any, Callable, List, Optional, Union
+
+from .actions import (CacheAction, CachePutAction, CacheRemoveAction,
+                      CacheResultAction, CombinedAction)
+from .const import DEFAULT_CACHE_NAME, NOTSET, NotSet
+from .exceptions import InvalidCacheError, SlycacheException
+from .interface import CacheInterface
+from .invocations import CachePut, CacheRemove, CacheResult
+from .key_generator import StringFormatGenerator
 
 log = logging.getLogger("slycache")
-
-
-class SlycacheException(Exception):
-    pass
-
-
-class InvalidCacheError(SlycacheException):
-    pass
-
-
-class NotSet(enum.Enum):
-    token = 0
-
-
-NOTSET: Final = NotSet.token
-
-
-class CacheInterface(Protocol):
-
-    def get(self, key: str, default: Any = None) -> Any:
-        raise NotImplementedError
-
-    def set(self, key: str, value: Any, timeout: int = None):
-        raise NotImplementedError
-
-    def delete(self, key: str):
-        raise NotImplementedError
-
-
-DEFAULT_CACHE_NAME = 'default'
-
-
-class StringKeyFormatter:
-
-    @staticmethod
-    def validate(template, fn):  # pylint: disable=unused-argument
-        # TODO: parse key to check params  # pylint: disable=fixme
-        # arg_names = inspect.getfullargspec(func).args
-        # vary_on = [part.split('.') for part in vary_on]
-        # vary_on = [(part[0], tuple(part[1:])) for part in vary_on]
-        # for arg, attrs in vary_on:
-        #     if arg not in arg_names:
-        #         raise ValueError(
-        #             'We cannot vary on "{}" because the function {} has '
-        #             'no such argument'.format(arg, self.fn.__name__)
-        #         )
-
-        if template and not isinstance(template, str):
-            raise ValueError(f"'key' must be None or a string: {template}")
-
-    @staticmethod
-    def format(prefix, key_template, fn, callargs) -> str:
-        arg_names = inspect.getfullargspec(fn).args
-        valid_args = {name: callargs[name] for name in arg_names}
-        template_format = key_template.format(**valid_args)
-        return template_format if prefix is None else f"{prefix}{template_format}"
 
 
 @dataclass(frozen=True)
@@ -162,211 +112,11 @@ class CacheHolder:
             raise InvalidCacheError(f"Slycache {name} not configured")
 
 
-caches = CacheHolder()
-
-
-@dataclass
-class CacheInvocation:
-    keys: List[str]
-    cache_name: Optional[str] = None
-
-    def get_updated_proxy(self, proxy: ProxyWithDefaults) -> ProxyWithDefaults:
-        overrides = self._get_overrides()
-        if overrides:
-            return replace(proxy, **overrides)
-        return proxy
-
-    def _get_overrides(self) -> dict:
-        overrides = {}
-        if self.cache_name:
-            overrides["cache_name"] = self.cache_name
-        return overrides
-
-
-@dataclass
-class CacheResult(CacheInvocation):
-    """
-    Data class used to contain the parameters for a ``cache_result`` operation.
-
-    See also:
-        :meth:`slycache.Slycache.cache_result`
-    """
-    timeout: Union[int, NotSet] = NOTSET
-    skip_get: bool = False
-
-    def _get_overrides(self) -> dict:
-        overrides = super()._get_overrides()
-        if self.timeout is not NOTSET:
-            overrides["timeout"] = self.timeout
-        return overrides
-
-
-@dataclass
-class CachePut(CacheInvocation):
-    """
-    Data class used to contain the parameters for a ``cache_put`` operation.
-
-    See also:
-        :meth:`slycache.Slycache.cache_put`
-    """
-    cache_value: Optional[str] = None
-    timeout: Union[int, NotSet] = NOTSET
-
-    @property
-    def skip_get(self):
-        return True
-
-    def _get_overrides(self) -> dict:
-        overrides = super()._get_overrides()
-        if self.timeout is not NOTSET:
-            overrides["timeout"] = self.timeout
-        return overrides
-
-
-class CacheRemove(CacheInvocation):
-    """
-    Data class used to contain the parameters for a ``cache_remove`` operation.
-
-    See also:
-        :meth:`slycache.Slycache.cache_remove`
-    """
-
-    @property
-    def skip_get(self):
-        return True
-
-
-class CacheAction(metaclass=ABCMeta):
-
-    def __init__(self, invocation: CacheInvocation):
-        self.invocation = invocation
-        self._proxy = None
-        self._formatted_keys = None
-
-    @property
-    def proxy(self):
-        if not self._proxy:
-            raise SlycacheException("proxy not set on action")
-        return self._proxy
-
-    def set_proxy(self, proxy):
-        self._proxy = self.invocation.get_updated_proxy(proxy)
-
-    @property
-    def formatted_keys(self):
-        return self._formatted_keys
-
-    @formatted_keys.setter
-    def formatted_keys(self, keys):
-        self._formatted_keys = keys
-
-    def call(self, cache_key, func, callargs, result):
-        self._call(cache_key, func, callargs, result)
-
-    @abstractmethod
-    def _call(self, cache_key, func, callargs, result):
-        raise NotImplementedError
-
-
-class CacheResultAction(CacheAction):
-
-    def _call(self, cache_key, func, callargs, result):
-        value = self._get_value(func, callargs, result)
-        if value is None:
-            log.debug(
-                "ignoring None value, cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__,
-                cache_key
-            )
-            return
-
-        self.proxy.set(cache_key, value)
-        log.debug("cache_set: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
-
-    def _get_value(self, func, callargs, result):  # pylint: disable=unused-argument,no-self-use
-        return result
-
-
-class CachePutAction(CacheResultAction):
-
-    def _get_value(self, func, callargs, result):
-        if self.invocation.cache_value is not None:
-            return callargs[self.invocation.cache_value]
-
-        args = list(callargs)
-        if len(args) == 1:
-            return callargs[args[0]]
-        if len(args) == 2 and args[0] == "self":
-            return callargs[args[1]]
-        raise SlycacheException("'cache_value' must be provided for functions with multiple arguments")
-
-
-class CacheRemoveAction(CacheAction):
-
-    def _call(self, cache_key, func, callargs, result):
-        log.debug("cache_remove: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
-        self.proxy.delete(cache_key)
-
-
-class CombinedAction:
-
-    def __init__(self, func: Callable, actions: List[CacheAction], key_formatter, proxy: ProxyWithDefaults):
-        self._func = func
-        self._actions = actions
-        self._key_formatter = key_formatter
-
-        for action in self._actions:
-            action.set_proxy(proxy)
-
-    def validate(self):
-        self.skip_get  # noqa, pylint: disable=pointless-statement
-        for action in self._actions:
-            for key in action.invocation.keys:
-                self._key_formatter.validate(key, self._func)
-
-    @cached_property
-    def skip_get(self):
-        skip_get = {action.invocation.skip_get for action in self._actions}
-        if len(skip_get) > 1:
-            raise SlycacheException("All actions agree on 'skip_get'")
-        return list(skip_get)[0]
-
-    def get_cached(self, callargs, default=Ellipsis):
-        if self.skip_get:
-            return default
-
-        for action in self._actions:
-            for key in self.get_action_keys(action, callargs):
-                result = action.proxy.get(key, default=default)
-                if result is not default:
-                    log.debug(
-                        "cache hit: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
-                    )
-                    return result
-                log.debug(
-                    "cache miss: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
-                )
-        return default
-
-    def get_action_keys(self, action: CacheAction, callargs):
-        if not action.formatted_keys:
-            keys = [
-                self._key_formatter.format(action.proxy.key_prefix, key, self._func, callargs)
-                for key in action.invocation.keys
-            ]
-            action.formatted_keys = keys
-        return action.formatted_keys
-
-    def call(self, result, callargs):
-        for action in self._actions:
-            for key in self.get_action_keys(action, callargs):
-                action.call(key, self._func, callargs, result)
-
-
 class Slycache:
 
     def __init__(self, proxy: ProxyWithDefaults = None, key_formatter=None):
         self._proxy = proxy
-        self._key_formatter = key_formatter or StringKeyFormatter
+        self._key_formatter = key_formatter or StringFormatGenerator
         self._merged = not self._proxy
 
     def with_defaults(self, **defaults):
@@ -600,4 +350,5 @@ class Slycache:
         return _decorator if func is None else _decorator(func)
 
 
+caches = CacheHolder()
 slycache = Slycache()

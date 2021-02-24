@@ -41,19 +41,19 @@ something
 __author__ = """snopoke"""
 __version__ = '0.1.0'
 
-from .slycache import (CacheInterface, InvalidCacheError, SlycacheException, Slycache, CacheResult, CachePut, CacheRemove,
-                       caches, slycache)
+from .exceptions import InvalidCacheError, SlycacheException
+from .interface import CacheInterface
+from .invocations import CachePut, CacheRemove, CacheResult
+from .slycache import Slycache, caches, slycache
 
 __all__ = [
     "caches",
     "slycache",
-    "CacheInterface",
-    "SlycacheException",
-    "InvalidCacheError",
     "Slycache",
     "CacheResult",
     "CachePut",
     "CacheRemove",
+    "CacheInterface",
+    "SlycacheException",
+    "InvalidCacheError",
 ]
-
-

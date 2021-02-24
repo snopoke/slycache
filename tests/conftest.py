@@ -1,6 +1,7 @@
 import pytest
 
-from slycache.slycache import DEFAULT_CACHE_NAME, Slycache, caches
+from slycache import Slycache, caches
+from slycache.const import DEFAULT_CACHE_NAME
 from tests.mock_cache import DictCache
 
 
