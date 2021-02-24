@@ -161,7 +161,7 @@ class ActionExecutor:
     def _get_action_keys(self, action: CacheAction, call_args):
         if not action.formatted_keys:
             keys = [
-                self._key_generator.generate(action.proxy.key_prefix, key, self._func, call_args)
+                self._key_generator.generate(action.proxy.key_namespace, key, self._func, call_args)
                 for key in action.invocation.keys
             ]
             action.formatted_keys = keys
@@ -177,3 +177,11 @@ class ActionExecutor:
         for action in self._actions:
             for key in self._get_action_keys(action, call_args):
                 action.call(key, self._func, call_args, result)
+
+    def clear_cache(self, call_args: Dict):
+        """Helper to clear the cache for a decorated function"""
+        for action in self._actions:
+            remove_action = CacheRemoveAction(action.invocation)
+            remove_action.set_proxy(action.proxy)
+            for key in self._get_action_keys(remove_action, call_args):
+                remove_action.call(key, self._func, call_args, None)

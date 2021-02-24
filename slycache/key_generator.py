@@ -1,7 +1,7 @@
 import inspect
 
 
-class StringFormatGenerator:
+class StringFormatKeyGenerator:
     """Key"""
 
     @staticmethod
@@ -21,8 +21,12 @@ class StringFormatGenerator:
             raise ValueError(f"'key' must be None or a string: {template}")
 
     @staticmethod
-    def generate(prefix, key_template, fn, call_args) -> str:
+    def generate(namespace, key_template, fn, call_args) -> str:
         arg_names = inspect.getfullargspec(fn).args
         valid_args = {name: call_args[name] for name in arg_names}
-        template_format = key_template.format(**valid_args)
-        return template_format if prefix is None else f"{prefix}{template_format}"
+        return generate_key(namespace, key_template, valid_args)
+
+
+def generate_key(namespace, key_template, call_args):
+    template_format = key_template.format(**call_args)
+    return template_format if namespace is None else f"{namespace}:{template_format}"

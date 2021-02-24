@@ -11,7 +11,7 @@ from .const import DEFAULT_CACHE_NAME, NOTSET, NotSet
 from .exceptions import InvalidCacheError, SlycacheException
 from .interface import CacheInterface
 from .invocations import CachePut, CacheRemove, CacheResult
-from .key_generator import StringFormatGenerator
+from .key_generator import StringFormatKeyGenerator
 
 log = logging.getLogger("slycache")
 
@@ -24,12 +24,12 @@ class ProxyWithDefaults:
     """
     cache_name: str
     timeout: Union[int, NotSet] = NOTSET
-    prefix: Union[str, NotSet] = NOTSET
+    namespace: Union[str, NotSet] = NOTSET
     _merged: bool = False
 
     @property
-    def key_prefix(self):
-        return None if self.prefix is NOTSET else self.prefix
+    def key_namespace(self):
+        return None if self.namespace is NOTSET else self.namespace
 
     def merge_with_global_defaults(self):
         if self._merged:
@@ -39,8 +39,8 @@ class ProxyWithDefaults:
         updates = {"_merged": True}
         if self.timeout is NOTSET:
             updates["timeout"] = defaults.timeout
-        if self.prefix is NOTSET:
-            updates["prefix"] = defaults.prefix
+        if self.namespace is NOTSET:
+            updates["namespace"] = defaults.namespace
 
         return replace(self, **updates)
 
@@ -73,21 +73,23 @@ class CacheHolder:
         name: str,
         cache_provider: CacheInterface,
         default_timeout: int = None,
-        default_prefix: Union[str, NotSet] = NOTSET
+        default_namespace: Union[str, NotSet] = NOTSET
     ):
         if name in self._caches:
             raise InvalidCacheError(f"Cache '{name}' is already registered")
-        self.replace(name, cache_provider, default_timeout, default_prefix)
+        self.replace(name, cache_provider, default_timeout, default_namespace)
 
     def replace(
         self,
         name: str,
         cache_provider: CacheInterface,
         default_timeout: int = None,
-        default_prefix: Union[str, NotSet] = NOTSET
+        default_namespace: Union[str, NotSet] = NOTSET
     ):
         self._caches[name] = cache_provider
-        self._proxies[name] = ProxyWithDefaults(name, timeout=default_timeout, prefix=default_prefix, _merged=True)
+        self._proxies[name] = ProxyWithDefaults(
+            name, timeout=default_timeout, namespace=default_namespace, _merged=True
+        )
 
     def deregister(self, name: str):
         try:
@@ -116,7 +118,7 @@ class Slycache:
 
     def __init__(self, proxy: ProxyWithDefaults = None, key_generator=None):
         self._proxy = proxy
-        self._key_generator = key_generator or StringFormatGenerator
+        self._key_generator = key_generator or StringFormatKeyGenerator
         self._merged = not self._proxy
 
     def with_defaults(self, **defaults):
@@ -127,7 +129,7 @@ class Slycache:
             key_generator: (KeyGenerator, optional): :class:`slycache.KeyGenerator` object to use for generating
                 and validating keys.
             timeout: (int, optional): default timeout to use for keys
-            prefix: (str, optional): key prefix to use
+            namespace: (str, optional): key namespace to use
         """
         cache_name = defaults.pop("cache_name", None)
         key_generator = defaults.pop("key_generator", self._key_generator)
@@ -351,6 +353,11 @@ class Slycache:
                 action.call(result, call_args)
                 return result
 
+            def _clear(*args, **kwargs):
+                call_args = inspect.signature(func).bind(*args, **kwargs).arguments
+                action.clear_cache(call_args)
+
+            _inner.clear_cache = _clear
             return _inner
 
         return _decorator if func is None else _decorator(func)

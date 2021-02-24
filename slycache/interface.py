@@ -52,11 +52,11 @@ class KeyGenerator(Protocol):
         raise NotImplementedError
 
     @staticmethod
-    def generate(prefix: Optional[str], template: str, func: Callable, call_args: Dict) -> str:
+    def generate(namespace: Optional[str], template: str, func: Callable, call_args: Dict) -> str:
         """Generate a key for use in a cache operation.
 
         Arguments:
-            prefix: the prefix to suffix the key with
+            namespace: the namespace to suffix the key with
             template: the key template
             func: the decorated function
             call_args: dictionary of arguments that were used in the function invocation
