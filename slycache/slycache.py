@@ -1,4 +1,4 @@
-"""Main module."""
+"""Main module"""
 import enum
 import inspect
 import logging
@@ -185,6 +185,12 @@ class CacheInvocation:
 
 @dataclass
 class CacheResult(CacheInvocation):
+    """
+    Data class used to contain the parameters for a ``cache_result`` operation.
+
+    See also:
+        :meth:`slycache.Slycache.cache_result`
+    """
     timeout: Union[int, NotSet] = NOTSET
     skip_get: bool = False
 
@@ -197,6 +203,12 @@ class CacheResult(CacheInvocation):
 
 @dataclass
 class CachePut(CacheInvocation):
+    """
+    Data class used to contain the parameters for a ``cache_put`` operation.
+
+    See also:
+        :meth:`slycache.Slycache.cache_put`
+    """
     cache_value: Optional[str] = None
     timeout: Union[int, NotSet] = NOTSET
 
@@ -212,6 +224,12 @@ class CachePut(CacheInvocation):
 
 
 class CacheRemove(CacheInvocation):
+    """
+    Data class used to contain the parameters for a ``cache_remove`` operation.
+
+    See also:
+        :meth:`slycache.Slycache.cache_remove`
+    """
 
     @property
     def skip_get(self):
@@ -381,6 +399,49 @@ class Slycache:
         timeout: Union[int, NotSet] = NOTSET,
         skip_get: bool = False
     ):
+        """
+        This is a function level decorator function used to mark methods whose returned value is cached,
+        using a key generated from the method parameters, and returned from the cache on later calls
+        with the same parameters.
+
+        When a method decorated with ``cache_result`` is invoked a
+        cache key will be generated and used to fetch the value from the cache before the decorated method
+        executes. If a value is found in the cache it is returned and the
+        decorated method is never executed. If no value is found the
+        decorated method is invoked and the returned value is stored in the cache
+        with the generated key.
+
+        ``None`` return values are not cached
+
+        The cache operation takes place after the invocation of the decorated function. Any exceptions
+        raised will will prevent operation from being executed;
+
+        To always invoke the annotated method and still cache the result set
+        ``skip_get`` to ``True``. This will disable the pre-invocation cache check.
+
+        Example of caching the User object with a key generated from the
+        ``str`` and ``bool`` parameters.
+
+        .. code::
+
+            @slycache.cache_result(keys="{username}_{is_active}")
+            def get_user(username: str, is_active: bool) -> User:
+                ...
+
+        Args:
+            keys (Union[str, List[str]]): key template or list of key templates. These are converted
+                to actual cache keys using the currently active key generator. See :ref:`key-generator`
+            cache_name (str, optional): If set this overrides the currently configured cache for this specific
+                operation.
+            timeout (int, optional): If set this overrides the currently configured timeout for this specific
+                operation.
+            skip_get (bool, optional): If set to true the pre-invocation is
+                skipped and the decorated method is always executed with the returned value
+                being cached as normal. This is useful for create or update methods which
+                should always be executed and have their returned value placed in the cache.
+
+                Defaults to False.
+        """
         if isinstance(keys, str):
             keys = [keys]
         invocation = CacheResult(keys, cache_name, timeout, skip_get)
@@ -395,12 +456,71 @@ class Slycache:
         cache_name: Optional[str] = None,
         timeout: Union[int, NotSet] = NOTSET
     ):
+        """
+        This is a function level decorator used to mark function where one of the function arguments
+        should be stored in the cache. One parameter must be selected using the ``cache_value`` argument.
+
+        If the function only has a single argument (excluding ``self``) then the ``cache_value`` argument
+        may be omitted.
+
+        When a function decorated with ``cache_put`` is invoked a
+        cache key will be generated and used to store the value selected from the
+        function arguments.
+
+        ``None`` values are not cached
+
+        The cache operation takes place after the invocation of the decorated function. Any exceptions
+        raised will will prevent operation from being executed;
+
+        Example of caching the User object:
+
+        .. code::
+
+            @slycache.cache_put(keys="{user.username}")
+            def save_user(user: User):
+                ...
+
+        Args:
+            keys (Union[str, List[str]]): key template or list of key templates. These are converted
+                to actual cache keys using the currently active key generator. See :ref:`key-generator`
+            cache_value (str, optional): The name of the function argument to cache. This may only be omitted
+                if the function only has a single argument (excluding ``self``).
+            cache_name (str, optional): If set this overrides the currently configured cache for this specific
+                operation.
+            timeout (int, optional): If set this overrides the currently configured timeout for this specific
+                operation.
+        """
         if isinstance(keys, str):
             keys = [keys]
         invocation = CachePut(keys, cache_name=cache_name, cache_value=cache_value, timeout=timeout)
         return self.caching(func, put=[invocation])
 
     def cache_remove(self, func=None, *, keys: Union[str, List[str]], cache_name: Optional[str] = None):
+        """
+        This is a function level decorator used to mark function where the invocation results
+        in an entry (or entries) being removed from the specified cache.
+
+        When a function decorated with ``cache_remove`` is invoked a
+        cache key will be generated by the :ref:`key-generator` ``CacheInterface.delete`` will
+        be invoked on the specified cache.
+
+        The cache operation takes place after the invocation of the decorated function. Any exceptions
+        raised will will prevent operation from being executed;
+
+        Example of removing the User object from the cache:
+
+        .. code::
+
+            @slycache.cache_remove(keys=["{user.username}", "{user.id}"])
+            def delete_user(user: User):
+                ...
+
+        Args:
+            keys (Union[str, List[str]]): key template or list of key templates. These are converted
+                to actual cache keys using the currently active key generator. See :ref:`key-generator`
+            cache_name (str, optional): If set this overrides the currently configured cache for this specific
+                operation.
+        """
         if isinstance(keys, str):
             keys = [keys]
         invocation = CacheRemove(keys, cache_name=cache_name)
@@ -414,6 +534,35 @@ class Slycache:
         put: Optional[List[CachePut]] = None,
         remove: Optional[List[CacheRemove]] = None
     ):
+        """
+        A function level decorator used to execute multiple cache operations
+        after the execution of the decorated function.
+
+        When a function decorated with ``caching`` is invoked each of the supplied cache operations
+        will be executed **in order**.
+
+        The cache operations are executed after the invocation of the decorated function. Any exceptions
+        raised will will prevent all of the operations from being executed;
+
+        Example of caching the User object in multiple caches:
+
+        .. code::
+
+            @slycache.caching(result=[
+                CacheResult(keys="{username}", cache_name="local_memory"),
+                CacheResult(keys="{username}", cache_name="redis"),
+            ])
+            def get_user(username: str):
+                ...
+
+        Args:
+            result (:obj:`list` of :class:`CacheResult`, optional): ``cache_result`` operations to execute.
+                See :meth:`slycache.Slycache.cache_result`
+            put (:obj:`list` of :class:`CachPut`, optional): ``cache_put`` operations to execute
+                See :meth:`slycache.Slycache.cache_put`
+            remove (:obj:`list` of :class:`CachRemove`, optional): ``cache_remove`` operations to execute
+                See :meth:`slycache.Slycache.cache_remove`
+        """
 
         actions = [
             action_class(invocation) for invocations, action_class in (
