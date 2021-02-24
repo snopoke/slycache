@@ -4,7 +4,7 @@ import uuid
 import pytest
 
 from slycache import caches, slycache
-from slycache.slycache import DEFAULT_CACHE_NAME, Slycache, ProxyWithDefaults, UNSET
+from slycache.slycache import DEFAULT_CACHE_NAME, Slycache, ProxyWithDefaults, NOTSET
 
 
 def result_func(arg):  # pylint: disable=unused-argument
@@ -78,17 +78,17 @@ def _test_cache(default_cache, other_cache, cache, timeout, prefix,
 
 def test_with_defaults_prefix(clean_slate):
     prefix = clean_slate.with_defaults(prefix="v1_")
-    assert prefix._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, -1, "v1_", False)
+    assert prefix._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, NOTSET, "v1_", False)
 
 
 def test_with_defaults_name(clean_slate):
     other = clean_slate.with_defaults(cache_name="other")
-    assert other._proxy == ProxyWithDefaults("other", -1, UNSET, False)
+    assert other._proxy == ProxyWithDefaults("other", NOTSET, NOTSET, False)
 
 
 def test_with_defaults_timeout(clean_slate):
     timeout = clean_slate.with_defaults(timeout=10)
-    assert timeout._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, 10, UNSET, False)
+    assert timeout._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, 10, NOTSET, False)
 
 
 def test_with_defaults_key_formatter(clean_slate):

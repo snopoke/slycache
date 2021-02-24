@@ -1,12 +1,11 @@
 """Main module."""
+import enum
 import inspect
 import logging
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, replace
 from functools import wraps
-from typing import Any, List, Optional, Protocol, Callable
-
-UNSET = "__UNSET__"
+from typing import Any, List, Optional, Protocol, Callable, Final, Union
 
 log = logging.getLogger("slycache")
 
@@ -17,6 +16,13 @@ class SlycacheException(Exception):
 
 class InvalidCacheError(SlycacheException):
     pass
+
+
+class NotSet(enum.Enum):
+    token = 0
+
+
+NOTSET: Final = NotSet.token
 
 
 class CacheInterface(Protocol):
@@ -65,13 +71,13 @@ class ProxyWithDefaults:
     via the cache name.
     """
     cache_name: str
-    timeout: int = -1
-    prefix: str = UNSET
+    timeout: Union[int, NotSet] = NOTSET
+    prefix: Union[str, NotSet] = NOTSET
     _merged: bool = False
 
     @property
     def key_prefix(self):
-        return None if self.prefix == UNSET else self.prefix
+        return None if self.prefix is NOTSET else self.prefix
 
     def merge_with_global_defaults(self):
         if self._merged:
@@ -79,9 +85,9 @@ class ProxyWithDefaults:
 
         defaults = caches.get_default_proxy(self.cache_name)
         updates = {"_merged": True}
-        if self.timeout == -1:
+        if self.timeout is NOTSET:
             updates["timeout"] = defaults.timeout
-        if self.prefix == UNSET:
+        if self.prefix is NOTSET:
             updates["prefix"] = defaults.prefix
 
         return replace(self, **updates)
@@ -95,7 +101,8 @@ class ProxyWithDefaults:
         return caches[self.cache_name].get(key, default)
 
     def set(self, key: str, value: Any):
-        caches[self.cache_name].set(key, value, self.timeout)
+        timeout = None if self.timeout is NOTSET else self.timeout
+        caches[self.cache_name].set(key, value, timeout)
 
     def delete(self, key: str):
         caches[self.cache_name].delete(key)
@@ -113,7 +120,7 @@ class CacheHolder:
                  name: str,
                  cache_provider: CacheInterface,
                  default_timeout: int = None,
-                 default_prefix: str = UNSET):
+                 default_prefix: Union[str, NotSet] = NOTSET):
         if name in self._caches:
             raise InvalidCacheError(f"Cache '{name}' is already registered")
         self.replace(name, cache_provider, default_timeout, default_prefix)
@@ -122,7 +129,7 @@ class CacheHolder:
                 name: str,
                 cache_provider: CacheInterface,
                 default_timeout: int = None,
-                default_prefix: str = UNSET):
+                default_prefix: Union[str, NotSet] = NOTSET):
         self._caches[name] = cache_provider
         self._proxies[name] = ProxyWithDefaults(name, timeout=default_timeout, prefix=default_prefix, _merged=True)
 
@@ -173,12 +180,12 @@ class CacheInvocation:
 
 @dataclass
 class CacheResult(CacheInvocation):
-    timeout: Optional[int] = -1
+    timeout: Union[int, NotSet] = NOTSET
     skip_get: bool = False
 
     def _get_overrides(self) -> dict:
         overrides = super()._get_overrides()
-        if self.timeout != -1:
+        if self.timeout is not NOTSET:
             overrides["timeout"] = self.timeout
         return overrides
 
@@ -186,11 +193,11 @@ class CacheResult(CacheInvocation):
 @dataclass
 class CachePut(CacheInvocation):
     cache_value: Optional[str] = None
-    timeout: Optional[int] = -1
+    timeout: Union[int, NotSet] = NOTSET
 
     def _get_overrides(self) -> dict:
         overrides = super()._get_overrides()
-        if self.timeout != -1:
+        if self.timeout is not NOTSET:
             overrides["timeout"] = self.timeout
         return overrides
 
@@ -280,7 +287,7 @@ class Slycache:
                      *,
                      key: str,
                      cache_name: Optional[str] = None,
-                     timeout: int = -1,
+                     timeout: Union[int, NotSet] = NOTSET,
                      skip_get: bool = False):
         invocation = CacheResult(key, cache_name, skip_get, timeout)
         return self.caching(func, result=[invocation])
@@ -291,7 +298,7 @@ class Slycache:
                   key: str,
                   cache_value: Optional[str] = None,
                   cache_name: Optional[str] = None,
-                  timeout: int = -1):
+                  timeout: Union[int, NotSet] = NOTSET):
         invocation = CachePut(key,
                               cache_name=cache_name,
                               cache_value=cache_value,
