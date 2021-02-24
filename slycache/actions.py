@@ -109,10 +109,10 @@ class ActionExecutor:
     and call arguments they have been decorated on.
     """
 
-    def __init__(self, func: Callable, actions: List[CacheAction], key_formatter, proxy: "ProxyWithDefaults"):
+    def __init__(self, func: Callable, actions: List[CacheAction], key_generator, proxy: "ProxyWithDefaults"):
         self._func = func
         self._actions = actions
-        self._key_generator = key_formatter
+        self._key_generator = key_generator
 
         for action in self._actions:
             action.set_proxy(proxy)

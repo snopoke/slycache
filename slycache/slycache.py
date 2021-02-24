@@ -114,20 +114,20 @@ class CacheHolder:
 
 class Slycache:
 
-    def __init__(self, proxy: ProxyWithDefaults = None, key_formatter=None):
+    def __init__(self, proxy: ProxyWithDefaults = None, key_generator=None):
         self._proxy = proxy
-        self._key_generator = key_formatter or StringFormatGenerator
+        self._key_generator = key_generator or StringFormatGenerator
         self._merged = not self._proxy
 
     def with_defaults(self, **defaults):
         cache_name = defaults.pop("cache_name", None)
-        key_formatter = defaults.pop("key_formatter", self._key_generator)
+        key_generator = defaults.pop("key_generator", self._key_generator)
         if not cache_name and self._proxy:
             new_proxy = replace(self._proxy, **defaults)
         else:
             new_proxy = ProxyWithDefaults(cache_name or DEFAULT_CACHE_NAME, **defaults)
 
-        return Slycache(new_proxy, key_formatter)
+        return Slycache(new_proxy, key_generator)
 
     @property
     def _cache_proxy(self):
