@@ -57,7 +57,7 @@ class StringKeyFormatter:
 
 
 @dataclass
-class SlycacheConfig:
+class ProxyWithDefaults:
     cache_name: str = DEFAULT_CACHE_ALIAS
     timeout: int = 60
     prefix: str = None
@@ -83,7 +83,7 @@ class CacheHolder:
     """
     def __init__(self):
         self._caches = {}
-        self._configs = {}
+        self._proxies = {}
 
     def register(self,
                  alias: str,
@@ -98,11 +98,11 @@ class CacheHolder:
                 cache_provider: CacheInterface,
                 default_timeout: int = None):
         self._caches[alias] = cache_provider
-        self._configs[alias] = SlycacheConfig(alias, timeout=default_timeout)
+        self._proxies[alias] = ProxyWithDefaults(alias, timeout=default_timeout)
 
-    def get_config(self, alias):
+    def get_proxy(self, alias):
         try:
-            return self._configs[alias]
+            return self._proxies[alias]
         except KeyError:
             raise InvalidCacheError(f"Slycache {alias} not configured")
 
@@ -122,11 +122,11 @@ class CacheInvocation:
     cache_name: Optional[str] = None
     skip_get: bool = True
 
-    def customize_config(self, config: SlycacheConfig) -> SlycacheConfig:
+    def update_defaults(self, proxy: ProxyWithDefaults) -> ProxyWithDefaults:
         overrides = self._get_overrides()
         if overrides:
-            return replace(config, **overrides)
-        return config
+            return replace(proxy, **overrides)
+        return proxy
 
     def _get_overrides(self) -> dict:
         overrides = {}
@@ -163,26 +163,26 @@ class CacheAction(metaclass=ABCMeta):
     def __init__(self, invocation: CacheInvocation):
         self.invocation = invocation
 
-    def __call__(self, cache_config, cache_key, func, callargs, result):
-        config = self.invocation.customize_config(cache_config)
-        self._call(config, cache_key, func, callargs, result)
+    def __call__(self, proxy, cache_key, func, callargs, result):
+        proxy = self.invocation.update_defaults(proxy)
+        self._call(proxy, cache_key, func, callargs, result)
 
     @abstractmethod
-    def _call(self, cache_config, cache_key, func, callargs, result):
+    def _call(self, proxy, cache_key, func, callargs, result):
         raise NotImplementedError
 
 
 class CacheResultAction(CacheAction):
-    def _call(self, cache_config, cache_key, func, callargs, result):
+    def _call(self, proxy, cache_key, func, callargs, result):
         value = self._get_value(func, callargs, result)
         if value is None:
             log.debug("ignoring None value, cache=%s, function=%s, key=%s",
-                      cache_config.cache_name, func.__name__, cache_key)
+                      proxy.cache_name, func.__name__, cache_key)
             return
 
-        cache_config.set(cache_key, value)
+        proxy.set(cache_key, value)
         log.debug("cache_set: cache=%s, function=%s, key=%s",
-                  cache_config.cache_name, func.__name__, cache_key)
+                  proxy.cache_name, func.__name__, cache_key)
 
     def _get_value(self, func, callargs, result):  # pylint: disable=unused-argument,no-self-use
         return result
@@ -202,10 +202,10 @@ class CachePutAction(CacheResultAction):
 
 
 class CacheRemoveAction(CacheAction):
-    def _call(self, cache_config, cache_key, func, callargs, result):
+    def _call(self, proxy, cache_key, func, callargs, result):
         log.debug("cache_remove: cache=%s, function=%s, key=%s",
-                  cache_config.cache_name, func.__name__, cache_key)
-        cache_config.delete(cache_key)
+                  proxy.cache_name, func.__name__, cache_key)
+        proxy.delete(cache_key)
 
 
 class CacheRemove(CacheInvocation):
@@ -215,21 +215,21 @@ class CacheRemove(CacheInvocation):
 class Slycache:
     def __init__(self,
                  cache_alias: str = DEFAULT_CACHE_ALIAS,
-                 config: SlycacheConfig = None,
+                 proxy: ProxyWithDefaults = None,
                  key_formatter=None):
         self.alias = cache_alias
-        self._config = config
+        self._proxy = proxy
         self._key_formatter = key_formatter or StringKeyFormatter
 
-    def with_config(self, **defaults):
+    def with_defaults(self, **defaults):
         alias = defaults.pop("cache_name", self.alias)
-        config = caches.get_config(alias)
-        return Slycache(alias, replace(config, **defaults))
+        proxy = caches.get_proxy(alias)
+        return Slycache(alias, replace(proxy, **defaults))
 
     def validate(self):
-        if not self._config:
-            self._config = caches.get_config(self.alias)
-        self._config.validate()
+        if not self._proxy:
+            self._proxy = caches.get_proxy(self.alias)
+        self._proxy.validate()
 
     def cache_result(self,
                      func=None,
@@ -295,7 +295,7 @@ class Slycache:
                 bound_args = inspect.signature(func).bind(*args, **kwargs)
 
                 def format_key(key):
-                    return self._key_formatter.format(self._config.prefix, key,
+                    return self._key_formatter.format(self._proxy.prefix, key,
                                                       func,
                                                       bound_args.arguments)
 
@@ -306,7 +306,7 @@ class Slycache:
 
                 if not skip_get:
                     for key in keys:
-                        result = self._config.get(key, default=Ellipsis)
+                        result = self._proxy.get(key, default=Ellipsis)
                         if result is not Ellipsis:
                             log.debug("cache hit: key=%s function=%s", key,
                                       func.__name__)
@@ -316,7 +316,7 @@ class Slycache:
 
                 result = func(*args, **kwargs)
                 for key, action in keys.items():
-                    action(self._config, key, func, bound_args.arguments,
+                    action(self._proxy, key, func, bound_args.arguments,
                            result)
                 return result
 

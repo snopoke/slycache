@@ -18,7 +18,7 @@ def result_func(arg):  # pylint: disable=unused-argument
     (Ellipsis, 5, Ellipsis),
     (Ellipsis, Ellipsis, "all_your_base"),
 ])  # pylint: disable=too-many-locals
-def test_cache_result_with_config(default_cache, other_cache, cache, timeout,
+def test_cache_result_with_defaults(default_cache, other_cache, cache, timeout,
                                   prefix):
     _test_cache(default_cache, other_cache, cache, timeout, prefix, True)
 
@@ -30,14 +30,14 @@ def test_cache_result_with_config(default_cache, other_cache, cache, timeout,
     (Ellipsis, 5),
     (Ellipsis, Ellipsis),
 ])  # pylint: disable=too-many-locals
-def test_cache_result_overwrite_config(default_cache, other_cache, cache,
+def test_cache_result_overwrite_defaults(default_cache, other_cache, cache,
                                        timeout):
     _test_cache(default_cache, other_cache, cache, timeout, Ellipsis, False)
 
 
 # pylint: disable=too-many-locals
 def _test_cache(default_cache, other_cache, cache, timeout, prefix,
-                override_with_config):
+                override_at_class_level):
     result = uuid.uuid4().hex
     result_func.return_value = result
 
@@ -53,8 +53,8 @@ def _test_cache(default_cache, other_cache, cache, timeout, prefix,
             overrides[k] = v
 
     custom_cache = slycache
-    if override_with_config:
-        custom_cache = slycache.with_config(**overrides)
+    if override_at_class_level:
+        custom_cache = slycache.with_defaults(**overrides)
         overrides = {}
 
     cached_func = custom_cache.cache_result(key="{arg}",
@@ -71,6 +71,6 @@ def _test_cache(default_cache, other_cache, cache, timeout, prefix,
     entry = cache_fixture.get_entry(expected_key)
     assert cache_fixture.get(expected_key) == result, entry
 
-    cache_config = caches.get_config(cache_alias)
-    expected_timeout = timeout if timeout is not Ellipsis else cache_config.timeout
+    proxy = caches.get_proxy(cache_alias)
+    expected_timeout = timeout if timeout is not Ellipsis else proxy.timeout
     assert entry.timeout == expected_timeout

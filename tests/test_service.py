@@ -68,7 +68,7 @@ def test_save_with_multiple():
     assert False
 
 
-def delete_multiple():
+def test_delete_multiple():
     assert False
 
 
