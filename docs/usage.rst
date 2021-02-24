@@ -2,23 +2,27 @@
 Usage
 =====
 
-To use slycache in a project::
+To use slycache in a project start by creating a namespaced cache::
 
-    @slycache.cache_result(keys="{username}")
+    user_cache = slycache.with_defaults(namespace="user")
+
+Then you can use the cache to decorate functions::
+
+    @user_cache.cache_result(keys="{username}")
     def get_user_by_username(username):
         ...
 
-    @slycache.cache_result(keys="{user_id}")
+    @user_cache.cache_result(keys="{user_id}")
     def get_user_by_id(user_id):
         ...
 
-    @slycache.cache_put(keys=[
+    @user_cache.cache_put(keys=[
         "{user.username}", "{user.user_id}"
     ])
     def save_user(user):
         ...
 
-    @slycache.cache_remove(keys=[
+    @user_cache.cache_remove(keys=[
         "{user.username}", "{user.user_id}"
     ])
     def delete_user(user):
@@ -67,6 +71,41 @@ also create a new cache object with the defaults preset::
 
 Namespaces
 ==========
+By default ``slycache`` will generate a namespace for keys based on the
+function name and arguments. This ensures that there are no key
+overlaps in the global namespace::
+
+    @slycache.cache_result(keys="{user.id},{game.id}")
+    def compute_score(user, game):
+        ...
+
+    > compute_score(user1, game1)
+    DEBUG   cache_miss: key=compute_score:user,game:user1,game1
+    DEBUG   cache_set:  key=compute_score:user,game:user1,game1
+
+Using the global namespace means that each decorated function will result
+in unique keys. In order to make use of the power of ``slycache`` you must
+define a custom namespace::
+
+    game_cache = slycache.with_defaults(namespace="mario")
+
+    @game_cache.cache_result(keys="{user.id},{game.id}")
+    def get_score(user, game):
+        ...
+
+    @game_cache.cache_put(keys="{user.id},{game.id}", cache_value="score")
+    def update_score(user, game, score):
+        ...
+
+    > update_score(user1, game1, 5)
+    DEBUG   cache_set: key=mario:user1,game1
+
+    > get_score(user1, game1)
+    DEBUG   cache_hit: key=mario:user1,game1
+
+In the example above you can see that even though we are decorating different
+functions they are operating on the same set of cache keys because they
+share a common namespace.
 
 Changing the defaults
 =====================
@@ -88,33 +127,57 @@ These can be overridden whenever a function is decorated for caching::
 Alternately you can also create a new cache object with the defaults preset which
 is useful if you want to reuse the same defaults on multiple functions::
 
-    cache_with_my_defaults = slycache.with_defaults(
+    analytics_cache = slycache.with_defaults(
         cache_name="other", timeout=5 * 60, namespace="analytics"
     )
 
-    @cache_with_my_defaults.cache_result(keys="user_{from}-{to}")
+    @analytics_cache.cache_result(keys="user_{from}-{to}")
     def get_user_analytics(from, to):
         ...
 
-    @cache_with_my_defaults.cache_result(keys="project_{from}-{to}")
+    @analytics_cache.cache_result(keys="project_{from}-{to}")
     def get_project_analytics(from, to):
         ...
 
-Standalone Usage
-================
-Slycache can also be used on standalone functions::
+Clearing the cache
+==================
+For standalone functions the cache may be cleared by calling ``clear_cache`` on
+the decorated function::
 
-    @slycache.cache_result(keys="{arg1}_{arg2}", timeout=60)
-    def expensive_function(arg1, arg2):
+    @slycache.cache_result(keys="{user}_{role}", timeout=60)
+    def expensive_function(user, role):
         ...
         return result
 
-    result = expensive_function("user1", False)
+    > result = expensive_function("user1", "admin")
+    DEBUG   cache_miss: key=...
+    DEBUG   cache_set: key=...
 
-Repeated calls to ``expensive_function`` will return the cached value
-until the cache expires (after 60s)
+    > expensive_function.clear_cache("user1", "admin")
+    DEBUG   cache_remove: key=...
 
-You may clear the cache if necessary::
+When using custom namespaces you can also decorate functions
+with the ``cache_remove`` decorator::
 
-    expensive_function.clear_cache("user1", False)
+    user_cache = slycache.with_defaults(namespace="user")
+
+    @user_cache.cache_remove(keys="{user.username"})
+    def delete_user(user):
+        ...
+
+    > delete_user(user1)
+    DEBUG cache_remove: key=user:wile.e.coyote
+
+Advanced Usage
+==============
+
+Multiple Cache Operations
+-------------------------
+
+TODO
+
+Skip get
+--------
+
+TODO
 
