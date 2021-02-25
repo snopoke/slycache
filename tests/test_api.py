@@ -2,9 +2,9 @@ import uuid
 
 import pytest
 
-from slycache import CacheResult, CachePut
+from slycache import CachePut, CacheResult
 from slycache.const import DEFAULT_CACHE_NAME, NOTSET
-from slycache.key_generator import generate_key, StringFormatKeyGenerator
+from slycache.key_generator import StringFormatKeyGenerator
 from slycache.slycache import ProxyWithDefaults, caches, slycache
 
 
@@ -66,7 +66,6 @@ def _test_cache(default_cache, other_cache, cache, timeout, namespace, override_
 
     ns = namespace if namespace is not Ellipsis else None
     expected_key = StringFormatKeyGenerator.generate(ns, "{arg}", result_func, {"arg": arg})
-    print(expected_key)
     entry = cache_fixture.get_entry(expected_key)
     assert cache_fixture.get(expected_key) == result, entry
 
@@ -131,15 +130,13 @@ def test_with_defaults_carry_forward(clean_slate):
 
 
 def test_clear_cache(default_cache):
-    results = ["1"]
-
     no_ns = slycache.with_defaults(namespace="")
 
     @no_ns.cache_result(keys="{arg}")
     def expensive(arg):
-        return results.pop()
+        return arg
 
-    assert expensive(1) == "1"
+    assert expensive(1) == 1
     assert ":1" in default_cache
 
     expensive.clear_cache(1)
@@ -147,21 +144,20 @@ def test_clear_cache(default_cache):
 
 
 def test_clear_cache_multiple(default_cache, other_cache):
-    results = ["1"]
-
     no_ns = slycache.with_defaults(namespace="")
 
-    @no_ns.caching(result=[
-        CacheResult(keys=["{arg}"], skip_get=True),
-        CacheResult(keys=["other_{arg}"], skip_get=True, cache_name="other"),
-    ], put=[
-        CachePut(keys=["put_{arg}"]),
-        CachePut(keys=["other_put_{arg}"], cache_name="other")
-    ])
+    @no_ns.caching(
+        result=[
+            CacheResult(keys=["{arg}"], skip_get=True),
+            CacheResult(keys=["other_{arg}"], skip_get=True, cache_name="other"),
+        ],
+        put=[CachePut(keys=["put_{arg}"]),
+             CachePut(keys=["other_put_{arg}"], cache_name="other")]
+    )
     def expensive(arg):
-        return results.pop()
+        return arg
 
-    assert expensive(1) == "1"
+    assert expensive(1) == 1
     assert ":1" in default_cache
     assert ":other_1" in other_cache
     assert ":put_1" in default_cache

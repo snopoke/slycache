@@ -24,8 +24,8 @@ def test_service_save_no_cache_value_param(default_cache):  # pylint: disable=un
     assert service.data == data
 
 
-def test_service_get_user_by_id_hit(default_cache):
-    user, data = _get_user_data()
+def test_service_get_user_by_id_hit(default_cache):  # pylint: disable=unused-argument
+    user, _ = _get_user_data()
     service = make_service(slycache)()
 
     service.save_with_multiple(user)
@@ -100,9 +100,7 @@ def test_save_with_multiple(default_cache, func):
 def test_delete_multiple(default_cache, func):
     user, data = _get_user_data()
     service = make_service(slycache)(data)
-    default_cache.init({
-        f"service:{k}": v for k, v in data.items()
-    })
+    default_cache.init({f"service:{k}": v for k, v in data.items()})
 
     assert f"service:{user.id}" in default_cache
     assert f"service:{user.username}" in default_cache

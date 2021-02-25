@@ -36,10 +36,10 @@ def get_namespace(func, arg_spec: FullArgSpec, max_len=60) -> str:
     full_namespace = f"{func.__name__}:{args}"
     if len(full_namespace) <= max_len:
         return full_namespace
-    return full_namespace[:max_len - 8] + hash(full_namespace, 8)
+    return full_namespace[:max_len - 8] + _hash(full_namespace, 8)
 
 
-def hash(value, length=8):
+def _hash(value, length=8):
     return hashlib.md5(value.encode('utf-8')).hexdigest()[-length:]
 
 
