@@ -161,9 +161,8 @@ class Slycache:
 
     def cache_result(
         self,
-        func: Optional[Callable] = None,
-        *,
         keys: Union[str, List[str]],
+        *,
         cache_name: Optional[str] = None,
         timeout: Union[int, NotSet] = NOTSET,
         namespace: Union[str, NotSet] = NOTSET,
@@ -217,13 +216,12 @@ class Slycache:
         if isinstance(keys, str):
             keys = [keys]
         invocation = CacheResult(keys, cache_name, namespace, timeout, skip_get)
-        return self.caching(func, result=[invocation])
+        return self.caching(result=[invocation])
 
     def cache_put(
         self,
-        func: Optional[Callable] = None,
-        *,
         keys: Union[str, List[str]],
+        *,
         cache_value: Optional[str] = None,
         cache_name: Optional[str] = None,
         timeout: Union[int, NotSet] = NOTSET,
@@ -268,13 +266,12 @@ class Slycache:
         if isinstance(keys, str):
             keys = [keys]
         invocation = CachePut(keys, cache_name, namespace, cache_value, timeout)
-        return self.caching(func, put=[invocation])
+        return self.caching(put=[invocation])
 
     def cache_remove(
         self,
-        func=None,
-        *,
         keys: Union[str, List[str]],
+        *,
         cache_name: Optional[str] = None,
         namespace: Union[str, NotSet] = NOTSET,
     ):
@@ -308,11 +305,10 @@ class Slycache:
         if isinstance(keys, str):
             keys = [keys]
         invocation = CacheRemove(keys, cache_name, namespace)
-        return self.caching(func, remove=[invocation])
+        return self.caching(remove=[invocation])
 
     def caching(
         self,
-        func: Optional[Callable] = None,
         *,
         result: Optional[List[CacheResult]] = None,
         put: Optional[List[CachePut]] = None,
@@ -352,9 +348,9 @@ class Slycache:
                 (remove, CacheRemoveAction),
             ) if invocations for invocation in invocations
         ]
-        return self._call(func, actions)
+        return self._call(actions)
 
-    def _call(self, func: Optional[Callable], actions: List[CacheAction]) -> Callable:
+    def _call(self, actions: List[CacheAction]) -> Callable:
         self.validate()
 
         def _decorator(func):
@@ -383,7 +379,7 @@ class Slycache:
             _inner.clear_cache = _clear
             return _inner
 
-        return _decorator if func is None else _decorator(func)
+        return _decorator
 
     def validate(self):
         self._cache_proxy.validate()
