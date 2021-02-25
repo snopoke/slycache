@@ -1,23 +1,18 @@
 import hashlib
 import inspect
 from inspect import FullArgSpec
+from string import Formatter
 
 
 class StringFormatKeyGenerator:
-    """Key"""
+    """Key Generator that generates a key from a string template
+    using the Python string Formatter class.
+    """
 
     @staticmethod
     def validate(template, func):  # pylint: disable=unused-argument
         # TODO: parse key to check params  # pylint: disable=fixme
-        # arg_names = inspect.getfullargspec(func).args
-        # vary_on = [part.split('.') for part in vary_on]
-        # vary_on = [(part[0], tuple(part[1:])) for part in vary_on]
-        # for arg, attrs in vary_on:
-        #     if arg not in arg_names:
-        #         raise ValueError(
-        #             'We cannot vary on "{}" because the function {} has '
-        #             'no such argument'.format(arg, self.fn.__name__)
-        #         )
+        # Formatter().parse(template)
 
         if template and not isinstance(template, str):
             raise ValueError(f"'key' must be None or a string: {template}")
@@ -27,11 +22,12 @@ class StringFormatKeyGenerator:
         arg_spec = inspect.getfullargspec(func)
         valid_args = {name: call_args[name] for name in arg_spec.args + arg_spec.kwonlyargs}
         if namespace is None:
-            namespace = get_namespace(func, arg_spec)
+            namespace = generate_namespace(func, arg_spec)
         return generate_key(namespace, key_template, valid_args)
 
 
-def get_namespace(func, arg_spec: FullArgSpec, max_len=60) -> str:
+def generate_namespace(func, arg_spec: FullArgSpec, max_len=60) -> str:
+    """Generate a namespace for the given function"""
     args = ",".join(arg_spec.args + arg_spec.kwonlyargs)
     full_namespace = f"{func.__name__}:{args}"
     if len(full_namespace) <= max_len:

@@ -43,7 +43,7 @@ class CacheResult(CacheInvocation):
     Data class used to contain the parameters for a ``cache_result`` operation.
 
     See also:
-        :meth:`slycache.Slycache.cache_result`
+        :meth:`slycache.cache_result`
     """
     timeout: Union[int, NotSet] = NOTSET
     skip_get: bool = False
@@ -61,7 +61,7 @@ class CachePut(CacheInvocation):
     Data class used to contain the parameters for a ``cache_put`` operation.
 
     See also:
-        :meth:`slycache.Slycache.cache_put`
+        :meth:`slycache.cache_put`
     """
     cache_value: Optional[str] = None
     timeout: Union[int, NotSet] = NOTSET
@@ -82,7 +82,7 @@ class CacheRemove(CacheInvocation):
     Data class used to contain the parameters for a ``cache_remove`` operation.
 
     See also:
-        :meth:`slycache.Slycache.cache_remove`
+        :meth:`slycache.cache_remove`
     """
 
     @property

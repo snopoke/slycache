@@ -170,6 +170,11 @@ with the ``cache_remove`` decorator::
     > delete_user(user1)
     DEBUG cache_remove: key=user:wile.e.coyote
 
+Cache Keys
+==========
+
+TODO
+
 Advanced Usage
 ==============
 

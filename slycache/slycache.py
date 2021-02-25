@@ -114,6 +114,9 @@ class CacheHolder:
             raise InvalidCacheError(f"Slycache {name} not configured")
 
 
+KeysType = Union[str, List[str]]
+
+
 class Slycache:
 
     def __init__(self, proxy: ProxyWithDefaults = None, key_generator=None):
@@ -161,7 +164,7 @@ class Slycache:
 
     def cache_result(
         self,
-        keys: Union[str, List[str]],
+        keys: KeysType,
         *,
         cache_name: Optional[str] = None,
         timeout: Union[int, NotSet] = NOTSET,
@@ -198,7 +201,7 @@ class Slycache:
                 ...
 
         Args:
-            keys (Union[str, List[str]]): key template or list of key templates. These are converted
+            keys (str or List[str]): key template or list of key templates. These are converted
                 to actual cache keys using the currently active key generator. See :ref:`key-generator`
             cache_name (str, optional): If set this overrides the currently configured cache for this specific
                 operation.
@@ -220,7 +223,7 @@ class Slycache:
 
     def cache_put(
         self,
-        keys: Union[str, List[str]],
+        keys: KeysType,
         *,
         cache_value: Optional[str] = None,
         cache_name: Optional[str] = None,
@@ -252,7 +255,7 @@ class Slycache:
                 ...
 
         Args:
-            keys (Union[str, List[str]]): key template or list of key templates. These are converted
+            keys (str or List[str]): key template or list of key templates. These are converted
                 to actual cache keys using the currently active key generator. See :ref:`key-generator`
             cache_value (str, optional): The name of the function argument to cache. This may only be omitted
                 if the function only has a single argument (excluding ``self``).
@@ -270,7 +273,7 @@ class Slycache:
 
     def cache_remove(
         self,
-        keys: Union[str, List[str]],
+        keys: KeysType,
         *,
         cache_name: Optional[str] = None,
         namespace: Union[str, NotSet] = NOTSET,
@@ -295,7 +298,7 @@ class Slycache:
                 ...
 
         Args:
-            keys (Union[str, List[str]]): key template or list of key templates. These are converted
+            keys (str or List[str]): key template or list of key templates. These are converted
                 to actual cache keys using the currently active key generator. See :ref:`key-generator`
             cache_name (str, optional): If set this overrides the currently configured cache for this specific
                 operation.

@@ -57,7 +57,7 @@ class CacheResultAction(CacheAction):
     """Action for ``CacheResult``
 
     See also:
-        :meth:`slycache.Slycache.cache_result`
+        :meth:`slycache.cache_result`
     """
 
     def call(self, cache_key: str, func: Callable, call_args: Dict, result: Any):
@@ -82,7 +82,7 @@ class CachePutAction(CacheResultAction):
     """Action for ``CachePut``
 
         See also:
-            :meth:`slycache.Slycache.cache_put`
+            :meth:`slycache.cache_put`
         """
 
     def _get_value(self, call_args: Dict, result: Any) -> Any:
@@ -101,7 +101,7 @@ class CacheRemoveAction(CacheAction):
     """Action for ``CacheRemove``
 
         See also:
-            :meth:`slycache.Slycache.cache_remove`
+            :meth:`slycache.cache_remove`
         """
 
     def call(self, cache_key: str, func: Callable, call_args: Dict, result: Any):
