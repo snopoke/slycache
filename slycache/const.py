@@ -1,5 +1,13 @@
 import enum
-from typing import Final
+import sys
+
+_native_final = sys.version_info[:2] >= (3, 8)
+if _native_final:
+    from typing import Final
+else:
+    from typing import TypeVar
+    Final = TypeVar("Final")
+
 
 DEFAULT_CACHE_NAME = 'default'
 

@@ -1,12 +1,17 @@
 import logging
+import sys
 from abc import ABCMeta, abstractmethod
-from functools import cached_property
 from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional,
                     TypeVar, Union)
 
 from .const import NOTSET, NotSet
 from .exceptions import SlycacheException
 from .invocations import CacheInvocation
+
+if sys.version_info[:2] >= (3, 8):
+    from functools import cached_property
+else:
+    from backports.cached_property import cached_property
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
