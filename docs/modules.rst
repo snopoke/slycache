@@ -3,26 +3,30 @@ Slycache API documentation
 ==========================
 
 
-.. autofunction::  slycache.Slycache.cache_result
+.. autofunction::  slycache.register_backend
 
 |
 
-.. autofunction::  slycache.Slycache.cache_put
+.. autofunction::  slycache.cache_result
 
 |
 
-.. autofunction::  slycache.Slycache.cache_remove
+.. autofunction::  slycache.cache_put
 
 |
 
-.. autofunction::  slycache.Slycache.caching
+.. autofunction::  slycache.cache_remove
+
+|
+
+.. autofunction::  slycache.caching
 
 .. _with_defaults:
 
 Creating caches with custom defaults
 ====================================
 
-.. autofunction::  slycache.Slycache.with_defaults
+.. autofunction::  slycache.with_defaults
 
 
 .. _invocations:

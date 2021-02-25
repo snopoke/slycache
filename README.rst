@@ -34,7 +34,7 @@ Basic Usage
 
 Start by registering a cache backend::
 
-    caches.register("default", my_cache_backend)
+    slycache.register_backend("default", my_cache_backend)
 
 Define a key namespace::
 

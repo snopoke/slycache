@@ -71,22 +71,22 @@ class CacheHolder:
     def register(
         self,
         name: str,
-        cache_provider: CacheInterface,
+        backend: CacheInterface,
         default_timeout: int = None,
         default_namespace: Union[str, NotSet] = NOTSET
     ):
         if name in self._caches:
             raise InvalidCacheError(f"Cache '{name}' is already registered")
-        self.replace(name, cache_provider, default_timeout, default_namespace)
+        self.replace(name, backend, default_timeout, default_namespace)
 
     def replace(
         self,
         name: str,
-        cache_provider: CacheInterface,
+        backend: CacheInterface,
         default_timeout: int = None,
         default_namespace: Union[str, NotSet] = NOTSET
     ):
-        self._caches[name] = cache_provider
+        self._caches[name] = backend
         self._proxies[name] = ProxyWithDefaults(
             name, timeout=default_timeout, namespace=default_namespace, _merged=True
         )
@@ -121,6 +121,25 @@ class Slycache:
         self._key_generator = key_generator or StringFormatKeyGenerator
         self._merged = not self._proxy
 
+    @staticmethod
+    def register_backend(
+        name: str,
+        backend: CacheInterface,
+        default_timeout: Optional[int] = None,
+        default_namespace: Optional[Union[str, NotSet]] = NOTSET
+    ):
+        """Register a cache backend.
+
+        Arguments:
+            name: (str): the name of the cache
+            backend: (:obj:`slycache.interface.CacheInterface`): An instance of the backend class.
+                This must conform to the interface defined by :class:`slycache.interface.CacheInterface`
+            default_timeout: (int, optional): the default timeout for this backend (seconds). Defaults to no timeout.
+            default_namespace: (str, optional): the default namespace for this backend. Defaults to None.
+                See :ref:`namespaces`
+        """
+        caches.register(name, backend, default_timeout, default_namespace)
+
     def with_defaults(self, **defaults):
         """Return a new Slycache object with updated defaults.
 
@@ -139,17 +158,6 @@ class Slycache:
             new_proxy = ProxyWithDefaults(cache_name or DEFAULT_CACHE_NAME, **defaults)
 
         return Slycache(new_proxy, key_generator)
-
-    @property
-    def _cache_proxy(self):
-        """Lazy initializer for proxy"""
-        if not self._proxy:
-            self._proxy = caches.get_default_proxy(DEFAULT_CACHE_NAME)
-
-        return self._proxy.merge_with_global_defaults()
-
-    def validate(self):
-        self._cache_proxy.validate()
 
     def cache_result(
         self,
@@ -376,6 +384,18 @@ class Slycache:
             return _inner
 
         return _decorator if func is None else _decorator(func)
+
+    def validate(self):
+        self._cache_proxy.validate()
+
+    @property
+    def _cache_proxy(self):
+        """Lazy initializer for proxy"""
+        if not self._proxy:
+            self._proxy = caches.get_default_proxy(DEFAULT_CACHE_NAME)
+
+        return self._proxy.merge_with_global_defaults()
+
 
 
 caches = CacheHolder()

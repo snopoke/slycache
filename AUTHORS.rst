@@ -2,11 +2,6 @@
 Credits
 =======
 
-Development Lead
-----------------
-
-* snopoke <simongdkelly@gmail.com>
-
 Contributors
 ------------
 

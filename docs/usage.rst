@@ -41,8 +41,8 @@ Slycache comes with build in support for the following backends:
 To use any other backend you must define a class the conforms to the
 :class:`slycache.CacheInterface` interface and register it with ``slycache``::
 
-    from slycache import caches
-    caches.register("default", MyCacheBackend())
+    import slycache
+    slycache.register_backend("default", MyCacheBackend())
 
 
 Multiple backends
@@ -50,8 +50,8 @@ Multiple backends
 
 Multiple backends can be registered::
 
-    caches.register("default", RedisBackend(), default_timeout=60)
-    caches.register("locmem", InMemoryBackend(), default_timeout=10)
+    slycache.register_backend("default", RedisBackend(), default_timeout=60)
+    slycache.register_backend("locmem", InMemoryBackend(), default_timeout=10)
 
 Unless overridden via the `cache_name` paramter ``slycache`` will
 always use the ``default`` cache. Using another registered cache is as easy as::
@@ -68,6 +68,8 @@ also create a new cache object with the defaults preset::
     @locmem.cache_result(keys="{path}")
     def process_data(path):
         ...
+
+.. _namespaces:
 
 Namespaces
 ==========
