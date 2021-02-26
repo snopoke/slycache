@@ -133,8 +133,8 @@ def make_service(cache: Slycache):
 
         @service_cache.caching(
             result=[
-                CacheResult(keys=["{user_id}"], skip_get=True),
-                CacheResult(keys=["{username}"], skip_get=True),
+                CacheResult(["{user_id}"], skip_get=True),
+                CacheResult(["{username}"], skip_get=True),
             ]
         )
         def update_user(self, user_id: str, username: str):
@@ -143,51 +143,51 @@ def make_service(cache: Slycache):
             self.data[user_id] = user
             return user
 
-        @service_cache.cache_result(keys=["{user_id}", "{username}"], skip_get=True)
+        @service_cache.cache_result(["{user_id}", "{username}"], skip_get=True)
         def update_user_simple(self, user_id: str, username: str):
             user = self.data[user_id]
             user.username = username
             self.data[user_id] = user
             return user
 
-        @service_cache.cache_result(keys="{user_id}")
+        @service_cache.cache_result("{user_id}")
         def get_user_by_id(self, user_id) -> User:
             try:
                 return self.data[user_id]
             except KeyError:
                 pass
 
-        @service_cache.cache_result(keys="{username}")
+        @service_cache.cache_result("{username}")
         def get_user_by_username(self, username) -> User:
             try:
                 return self.data[username]
             except KeyError:
                 pass
 
-        @service_cache.cache_put(keys="{user.id}", cache_value="user")
+        @service_cache.cache_put("{user.id}", cache_value="user")
         def save_with_cache_value_param(self, user: User):
             self.data[user.id] = user
             self.data[user.username] = user
 
         @service_cache.caching(put=[
-            CachePut(keys=["{user.id}"]),
-            CachePut(keys=["{user.username}"]),
+            CachePut(["{user.id}"]),
+            CachePut(["{user.username}"]),
         ])
         def save_with_multiple(self, user: User):
             self.data[user.id] = user
             self.data[user.username] = user
 
-        @service_cache.cache_put(keys=["{user.id}", "{user.username}"])
+        @service_cache.cache_put(["{user.id}", "{user.username}"])
         def save_with_multiple_simple(self, user: User):
             self.data[user.id] = user
             self.data[user.username] = user
 
-        @service_cache.cache_put(keys="{user.id}")
+        @service_cache.cache_put("{user.id}")
         def save_no_cache_value_param(self, user: User):
             self.data[user.id] = user
             self.data[user.username] = user
 
-        @service_cache.cache_remove(keys="{user.id}")
+        @service_cache.cache_remove("{user.id}")
         def delete(self, user: User):
             try:
                 del self.data[user.id]
@@ -200,8 +200,8 @@ def make_service(cache: Slycache):
                 pass
 
         @service_cache.caching(remove=[
-            CacheRemove(keys=["{user.id}"]),
-            CacheRemove(keys=["{user.username}"]),
+            CacheRemove(["{user.id}"]),
+            CacheRemove(["{user.username}"]),
         ])
         def delete_multiple(self, user: User):
             try:
@@ -214,7 +214,7 @@ def make_service(cache: Slycache):
             except KeyError:
                 pass
 
-        @service_cache.cache_remove(keys=["{user.id}", "{user.username}"])
+        @service_cache.cache_remove(["{user.id}", "{user.username}"])
         def delete_multiple_simple(self, user: User):
             try:
                 del self.data[user.id]

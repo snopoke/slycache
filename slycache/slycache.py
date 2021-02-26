@@ -196,7 +196,7 @@ class Slycache:
 
         .. code::
 
-            @slycache.cache_result(keys="{username}_{is_active}")
+            @slycache.cache_result("{username}_{is_active}")
             def get_user(username: str, is_active: bool) -> User:
                 ...
 
@@ -250,7 +250,7 @@ class Slycache:
 
         .. code::
 
-            @slycache.cache_put(keys="{user.username}")
+            @slycache.cache_put("{user.username}")
             def save_user(user: User):
                 ...
 
@@ -293,7 +293,7 @@ class Slycache:
 
         .. code::
 
-            @slycache.cache_remove(keys=["{user.username}", "{user.id}"])
+            @slycache.cache_remove(["{user.username}", "{user.id}"])
             def delete_user(user: User):
                 ...
 
@@ -332,8 +332,8 @@ class Slycache:
         .. code::
 
             @slycache.caching(result=[
-                CacheResult(keys="{username}", cache_name="local_memory"),
-                CacheResult(keys="{username}", cache_name="redis"),
+                CacheResult("{username}", cache_name="local_memory"),
+                CacheResult("{username}", cache_name="redis"),
             ])
             def get_user(username: str):
                 ...

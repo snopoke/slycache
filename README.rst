@@ -43,21 +43,21 @@ Define a key namespace::
 
 Use the cache on methods and functions::
 
-    @user_cache.cache_result(keys="{username}")
+    @user_cache.cache_result("{username}")
     def get_user_by_username(username):
         ...
 
-    @user_cache.cache_result(keys="{user_id}")
+    @user_cache.cache_result("{user_id}")
     def get_user_by_id(user_id):
         ...
 
-    @user_cache.cache_put(keys=[
+    @user_cache.cache_put([
         "{user.username}", "{user.user_id}"
     ])
     def save_user(user):
         ...
 
-    @user_cache.cache_remove(keys=[
+    @user_cache.cache_remove([
         "{user.username}", "{user.user_id}"
     ])
     def delete_user(user):

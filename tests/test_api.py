@@ -55,7 +55,7 @@ def _test_cache(default_cache, other_cache, cache, timeout, namespace, override_
         custom_cache = slycache.with_defaults(**overrides)
         overrides = {}
 
-    cached_func = custom_cache.cache_result(keys="{arg}", **overrides)(result_func)
+    cached_func = custom_cache.cache_result("{arg}", **overrides)(result_func)
 
     arg = uuid.uuid4().hex
     assert cached_func(arg) == result
@@ -132,7 +132,7 @@ def test_with_defaults_carry_forward(clean_slate):
 def test_clear_cache(default_cache):
     no_ns = slycache.with_defaults(namespace="")
 
-    @no_ns.cache_result(keys="{arg}")
+    @no_ns.cache_result("{arg}")
     def expensive(arg):
         return arg
 
@@ -148,11 +148,11 @@ def test_clear_cache_multiple(default_cache, other_cache):
 
     @no_ns.caching(
         result=[
-            CacheResult(keys=["{arg}"], skip_get=True),
-            CacheResult(keys=["other_{arg}"], skip_get=True, cache_name="other"),
+            CacheResult(["{arg}"], skip_get=True),
+            CacheResult(["other_{arg}"], skip_get=True, cache_name="other"),
         ],
-        put=[CachePut(keys=["put_{arg}"]),
-             CachePut(keys=["other_put_{arg}"], cache_name="other")]
+        put=[CachePut(["put_{arg}"]),
+             CachePut(["other_put_{arg}"], cache_name="other")]
     )
     def expensive(arg):
         return arg

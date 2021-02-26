@@ -8,28 +8,28 @@ To use slycache in a project start by creating a namespaced cache::
 
 Then you can use the cache to decorate functions::
 
-    @user_cache.cache_result(keys="{username}")
+    @user_cache.cache_result("{username}")
     def get_user_by_username(username):
         ...
 
-    @user_cache.cache_result(keys="{user_id}")
+    @user_cache.cache_result("{user_id}")
     def get_user_by_id(user_id):
         ...
 
-    @user_cache.cache_put(keys=[
+    @user_cache.cache_put([
         "{user.username}", "{user.user_id}"
     ])
     def save_user(user):
         ...
 
-    @user_cache.cache_remove(keys=[
+    @user_cache.cache_remove([
         "{user.username}", "{user.user_id}"
     ])
     def delete_user(user):
         ...
 
 Adapting a backend
-==================
+------------------
 
 The backend interface required by ``slycache`` is very simple and is
 defined by the :class:`slycache.CacheInterface` class.
@@ -46,7 +46,7 @@ To use any other backend you must define a class the conforms to the
 
 
 Multiple backends
------------------
+~~~~~~~~~~~~~~~~~
 
 Multiple backends can be registered::
 
@@ -56,7 +56,7 @@ Multiple backends can be registered::
 Unless overridden via the `cache_name` paramter ``slycache`` will
 always use the ``default`` cache. Using another registered cache is as easy as::
 
-    @slycache.cache_result(keys="{path}", cache_name="locmem")
+    @slycache.cache_result("{path}", cache_name="locmem")
     def process_data(path):
         ...
 
@@ -65,19 +65,19 @@ also create a new cache object with the defaults preset::
 
     locmem = slycache.with_defaults(cache_name="locmem")
 
-    @locmem.cache_result(keys="{path}")
+    @locmem.cache_result("{path}")
     def process_data(path):
         ...
 
 .. _namespaces:
 
 Namespaces
-==========
+----------
 By default ``slycache`` will generate a namespace for keys based on the
 function name and arguments. This ensures that there are no key
 overlaps in the global namespace::
 
-    @slycache.cache_result(keys="{user.id},{game.id}")
+    @slycache.cache_result("{user.id},{game.id}")
     def compute_score(user, game):
         ...
 
@@ -91,11 +91,11 @@ define a custom namespace::
 
     game_cache = slycache.with_defaults(namespace="mario")
 
-    @game_cache.cache_result(keys="{user.id},{game.id}")
+    @game_cache.cache_result("{user.id},{game.id}")
     def get_score(user, game):
         ...
 
-    @game_cache.cache_put(keys="{user.id},{game.id}", cache_value="score")
+    @game_cache.cache_put("{user.id},{game.id}", cache_value="score")
     def update_score(user, game, score):
         ...
 
@@ -110,7 +110,7 @@ functions they are operating on the same set of cache keys because they
 share a common namespace.
 
 Changing the defaults
-=====================
+---------------------
 The default ``slycache`` object comes with certain presets:
 
 * cache name: ``default``
@@ -133,20 +133,20 @@ is useful if you want to reuse the same defaults on multiple functions::
         cache_name="other", timeout=5 * 60, namespace="analytics"
     )
 
-    @analytics_cache.cache_result(keys="user_{from}-{to}")
+    @analytics_cache.cache_result("user_{from}-{to}")
     def get_user_analytics(from, to):
         ...
 
-    @analytics_cache.cache_result(keys="project_{from}-{to}")
+    @analytics_cache.cache_result("project_{from}-{to}")
     def get_project_analytics(from, to):
         ...
 
 Clearing the cache
-==================
+------------------
 For standalone functions the cache may be cleared by calling ``clear_cache`` on
 the decorated function::
 
-    @slycache.cache_result(keys="{user}_{role}", timeout=60)
+    @slycache.cache_result("{user}_{role}", timeout=60)
     def expensive_function(user, role):
         ...
         return result
@@ -163,7 +163,7 @@ with the ``cache_remove`` decorator::
 
     user_cache = slycache.with_defaults(namespace="user")
 
-    @user_cache.cache_remove(keys="{user.username"})
+    @user_cache.cache_remove("{user.username"})
     def delete_user(user):
         ...
 
@@ -171,20 +171,20 @@ with the ``cache_remove`` decorator::
     DEBUG cache_remove: key=user:wile.e.coyote
 
 Cache Keys
-==========
+----------
 
 TODO
 
 Advanced Usage
-==============
+--------------
 
 Multiple Cache Operations
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TODO
 
 Skip get
---------
+~~~~~~~~
 
 TODO
 
