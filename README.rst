@@ -5,9 +5,14 @@ slycache
 
 .. image:: https://img.shields.io/pypi/v/slycache.svg
         :target: https://pypi.python.org/pypi/slycache
+        :alt: PyPi version
+
+.. image:: https://img.shields.io/pypi/pyversions/slycache
+         :alt: Python versions
 
 .. image:: https://github.com/snopoke/slycache/actions/workflows/ci.yml/badge.svg
         :target: https://github.com/snopoke/slycache/actions/workflows/ci.yml
+        :alt: Build status
 
 .. image:: https://readthedocs.org/projects/slycache/badge/?version=latest
         :target: https://slycache.readthedocs.io/en/latest/?badge=latest
