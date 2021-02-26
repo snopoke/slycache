@@ -25,7 +25,6 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.6"
 dataclasses = {version = "^0.8", python = "~3.6"}
-"backports.cached-property" = {version = "^1.0.1", python = "<3.8"}
 
 [tool.poetry.dev-dependencies]
 bumpversion = "*"

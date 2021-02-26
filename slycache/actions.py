@@ -8,10 +8,6 @@ from .const import NOTSET, NotSet
 from .exceptions import SlycacheException
 from .invocations import CacheInvocation
 
-if sys.version_info[:2] >= (3, 8):
-    from functools import cached_property
-else:
-    from backports.cached_property import cached_property
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -118,6 +114,7 @@ class ActionExecutor:
         self._func = func
         self._actions = actions
         self._key_generator = key_generator
+        self._skip_get_ = None
 
         for action in self._actions:
             action.set_proxy(proxy)
@@ -129,12 +126,14 @@ class ActionExecutor:
             for key in action.invocation.keys:
                 self._key_generator.validate(key, self._func)
 
-    @cached_property
+    @property
     def _skip_get(self):
-        skip_get = {action.invocation.skip_get for action in self._actions}
-        if len(skip_get) > 1:
-            raise SlycacheException("All actions agree on 'skip_get'")
-        return list(skip_get)[0]
+        if self._skip_get_ is None:
+            skip_get = {action.invocation.skip_get for action in self._actions}
+            if len(skip_get) > 1:
+                raise SlycacheException("All actions agree on 'skip_get'")
+            self._skip_get_ = list(skip_get)[0]
+        return self._skip_get_
 
     def get_cached(self, call_args) -> Union[Any, NotSet]:
         """Iteratively check the action caches with each key
