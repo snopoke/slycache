@@ -27,16 +27,22 @@ A caching API for python loosely modeled after the Java Caching API (JSR107_).
 Basic Usage
 -----------
 
-Start by registering a cache backend::
+Start by registering a cache backend:
+
+.. code:: python
 
     slycache.register_backend("default", my_cache_backend)
 
-Define a key namespace::
+Define a key namespace:
+
+.. code:: python
 
     # define a key namespace
     user_cache = slycache.with_defaults(namespace="user")
 
-Use the cache on methods and functions::
+Use the cache on methods and functions:
+
+.. code:: python
 
     @user_cache.cache_result("{username}")
     def get_user_by_username(username):
