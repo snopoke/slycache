@@ -24,13 +24,6 @@ A caching API for python loosely modeled after the Java Caching API (JSR107_).
 .. note::
     This library is in Alpha stage and not ready for production use.
 
-Features
---------
-
-* Simple decorator based API
-* Easily adapt any cache backend to work with slycache
-
-
 Basic Usage
 -----------
 
