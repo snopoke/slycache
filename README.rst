@@ -21,6 +21,8 @@ A caching API for python loosely modeled after the Java Caching API (JSR107_).
 
 * Documentation: https://slycache.readthedocs.io.
 
+.. note::
+    This library is in Alpha stage and not ready for production use.
 
 Features
 --------
