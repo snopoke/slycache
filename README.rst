@@ -8,7 +8,8 @@ slycache
         :alt: PyPi version
 
 .. image:: https://img.shields.io/pypi/pyversions/slycache
-         :alt: Python versions
+        :target: https://pypi.python.org/pypi/slycache
+        :alt: Python versions
 
 .. image:: https://github.com/snopoke/slycache/actions/workflows/ci.yml/badge.svg
         :target: https://github.com/snopoke/slycache/actions/workflows/ci.yml
