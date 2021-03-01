@@ -173,7 +173,32 @@ with the ``cache_remove`` decorator::
 Cache Keys
 ----------
 
-TODO
+Keys are passed in to Slycache as string templates which are formatted as
+[Python format strings](https://docs.python.org/3/library/string.html#format-string-syntax).
+
+The template may reference any arguments passed to the decorated function:
+
+.. code:: python
+
+    class Project:
+        @slycache.cache_result("{self.id}.{user.username}")
+        def calculate_expenses(self, user: User):
+            ...
+
+The above example would generate keys as follows::
+
+    [namespace]:1234.user1
+
+
+Special type handling
+~~~~~~~~~~~~~~~~~~~~~
+
+``datetime`` values receive special treatment when they appear in keys.
+
+Any timezone aware ``datetime`` object will be converted to UTC. This means that ``datetime`` objects
+with different timezones but representing the same point in time will be serialized the same way.
+
+Naive ``datetimes`` will be serialized without adjustment.
 
 Advanced Usage
 --------------

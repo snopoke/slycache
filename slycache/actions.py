@@ -1,5 +1,4 @@
 import logging
-import sys
 from abc import ABCMeta, abstractmethod
 from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional,
                     TypeVar, Union)
@@ -7,7 +6,6 @@ from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional,
 from .const import NOTSET, NotSet
 from .exceptions import SlycacheException
 from .invocations import CacheInvocation
-
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import

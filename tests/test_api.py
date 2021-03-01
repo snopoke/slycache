@@ -151,8 +151,7 @@ def test_clear_cache_multiple(default_cache, other_cache):
             CacheResult(["{arg}"], skip_get=True),
             CacheResult(["other_{arg}"], skip_get=True, cache_name="other"),
         ],
-        put=[CachePut(["put_{arg}"]),
-             CachePut(["other_put_{arg}"], cache_name="other")]
+        put=[CachePut(["put_{arg}"]), CachePut(["other_put_{arg}"], cache_name="other")]
     )
     def expensive(arg):
         return arg

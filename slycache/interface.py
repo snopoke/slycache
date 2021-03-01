@@ -5,6 +5,7 @@ _native_protocol = sys.version_info[:2] >= (3, 8)
 if _native_protocol:
     from typing import Protocol
 else:
+
     class Protocol:
         pass
 

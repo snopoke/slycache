@@ -8,7 +8,6 @@ else:
     from typing import TypeVar
     Final = TypeVar("Final")
 
-
 DEFAULT_CACHE_NAME = 'default'
 
 
