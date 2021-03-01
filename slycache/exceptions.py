@@ -4,3 +4,11 @@ class SlycacheException(Exception):
 
 class InvalidCacheError(SlycacheException):
     pass
+
+
+class KeyFormatException(SlycacheException):
+    pass
+
+
+class NamespaceException(SlycacheException):
+    pass

@@ -1,3 +1,4 @@
+import base64
 import datetime
 import hashlib
 import inspect
@@ -5,6 +6,8 @@ from inspect import Parameter
 from string import Formatter
 
 from pytz import utc
+
+from slycache.exceptions import KeyFormatException, NamespaceException
 
 MUTABLE_TYPES = (list, dict, set, bytearray)
 
@@ -14,10 +17,6 @@ except ImportError:
 
     def formatter_field_name_split(field_name):
         return field_name._formatter_field_name_split()
-
-
-class KeyFormatException(Exception):
-    pass
 
 
 class StringFormatKeyGenerator:
@@ -52,7 +51,7 @@ class StringFormatKeyGenerator:
 
                 first, _ = formatter_field_name_split(field_name)
                 if first not in args:
-                    raise KeyFormatException(f"Argument '{first}' in key not present in function: '{sig_str}'")
+                    raise KeyFormatException(f"Argument '{first}' is not present in function: '{sig_str}'")
 
                 param = sig.parameters[first]
                 default = param.default
@@ -64,10 +63,12 @@ class StringFormatKeyGenerator:
     @staticmethod
     def generate(namespace, key_template, func, call_args) -> str:
         args = get_arg_names(func=func)
-        valid_args = {name: call_args[name] for name in args}
+        valid_args = {name: call_args[name] for name in args if name in call_args}
         if namespace is None:
             namespace = generate_namespace(func, args)
-        return generate_key(namespace, key_template, valid_args)
+        elif not namespace:
+            raise NamespaceException("Namespace must not be empty")
+        return generate_key(namespace, key_template, valid_args, max_len=250)
 
 
 def get_arg_names(func=None, sig=None):
@@ -104,9 +105,11 @@ def _hash(value, length=8):
     return hashlib.md5(value.encode('utf-8')).hexdigest()[-length:]
 
 
-def generate_key(namespace, key_template, call_args):
-    template_format = StringFormatter().format(key_template, **call_args)
-    return template_format if namespace is None else f"{namespace}:{template_format}"
+def generate_key(namespace, key_template, call_args, max_len=250):
+    key = StringFormatter().format(key_template, **call_args)
+    if len(key) + len(namespace) > int(max_len):
+        key = base64.urlsafe_b64encode(hashlib.sha1(key.encode("utf8")).digest()).decode().rstrip("=")
+    return key if namespace is None else f"{namespace}:{key}"
 
 
 class StringFormatter(Formatter):
@@ -122,6 +125,33 @@ class StringFormatter(Formatter):
         return super().convert_field(value, conversion)
 
     def format_field(self, value, format_spec):
-        if not format_spec and isinstance(value, datetime.datetime):
-            return value.isoformat()
+        if not format_spec:
+            return self._format_field(value)
         return super().format_field(value, format_spec)
+
+    def _format_field(self, value):
+        if isinstance(value, datetime.datetime):
+            return value.isoformat()
+        if isinstance(value, (tuple, list, set, frozenset, dict)):
+            return make_hash(value)
+        return super().format_field(value, "")
+
+
+def make_hash(o, hash_factory=hashlib.sha1):
+    # https://stackoverflow.com/a/42151923/632517
+    hasher = hash_factory()
+    hasher.update(repr(make_hashable(o)).encode())
+    return base64.urlsafe_b64encode(hasher.digest()).decode().rstrip("=")
+
+
+def make_hashable(o):
+    if isinstance(o, (tuple, list)):
+        return (type(o),) + tuple(make_hashable(e) for e in o)
+
+    if isinstance(o, dict):
+        return (type(o),) + tuple(sorted((k, make_hashable(v)) for k, v in o.items()))
+
+    if isinstance(o, (set, frozenset)):
+        return (type(o),) + tuple(sorted(make_hashable(e) for e in o))
+
+    return format(o)
