@@ -117,6 +117,15 @@ class ActionExecutor:
         for action in self._actions:
             action.set_proxy(proxy)
 
+        # temporary cache for keys to avoid having to re-generate them on cache miss
+        self._key_cache = None
+
+    def __enter__(self):
+        self._key_cache = {}
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._key_cache = None
+
     def validate(self):
         """Validate actions and key templates"""
         self._skip_get  # noqa, pylint: disable=pointless-statement
@@ -161,13 +170,16 @@ class ActionExecutor:
         return NOTSET
 
     def _get_action_keys(self, action: CacheAction, call_args):
-        if not action.formatted_keys:
-            keys = [
-                self._key_generator.generate(action.proxy.key_namespace, key, self._func, call_args)
-                for key in action.invocation.keys
-            ]
-            action.formatted_keys = keys
-        return action.formatted_keys
+        if self._key_cache and action in self._key_cache:
+            return self._key_cache[action]
+
+        keys = [
+            self._key_generator.generate(action.proxy.key_namespace, key, self._func, call_args)
+            for key in action.invocation.keys
+        ]
+        if self._key_cache is not None:
+            self._key_cache[action] = keys
+        return keys
 
     def call(self, result: Optional[Any], call_args: Dict):
         """Execute the actions

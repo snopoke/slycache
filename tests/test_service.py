@@ -35,12 +35,15 @@ def test_service_get_user_by_id_hit(default_cache):  # pylint: disable=unused-ar
     result = service.get_user_by_id(user.id)
     assert result == user
 
+    result = service.get_user_by_id("other")
+    assert result is None
+
 
 def test_service_get_user_by_id_miss(default_cache):
     user, data = _get_user_data()
     service = make_service(slycache)()
 
-    result = service.get_user_by_username(user.id)
+    result = service.get_user_by_id(user.id)
     assert result is None
     assert user.id not in default_cache
 

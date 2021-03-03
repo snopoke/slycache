@@ -367,13 +367,14 @@ class Slycache:
             def _inner(*args, **kwargs):
                 call_args = inspect.signature(func).bind(*args, **kwargs).arguments
 
-                result = action.get_cached(call_args)
-                if result is not NOTSET:
-                    return result
+                with action:
+                    result = action.get_cached(call_args)
+                    if result is not NOTSET:
+                        return result
 
-                result = func(*args, **kwargs)
-                action.call(result, call_args)
-                return result
+                    result = func(*args, **kwargs)
+                    action.call(result, call_args)
+                    return result
 
             def _clear(*args, **kwargs):
                 call_args = inspect.signature(func).bind(*args, **kwargs).arguments
