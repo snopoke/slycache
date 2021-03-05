@@ -130,21 +130,21 @@ def test_with_defaults_carry_forward(clean_slate):
 
 
 def test_clear_cache(default_cache):
-    no_ns = slycache.with_defaults(namespace="")
+    no_ns = slycache.with_defaults(namespace=".")
 
     @no_ns.cache_result("{arg}")
     def expensive(arg):
         return arg
 
     assert expensive(1) == 1
-    assert ":1" in default_cache
+    assert ".:1" in default_cache
 
     expensive.clear_cache(1)
-    assert ":1" not in default_cache
+    assert ".:1" not in default_cache
 
 
 def test_clear_cache_multiple(default_cache, other_cache):
-    no_ns = slycache.with_defaults(namespace="")
+    no_ns = slycache.with_defaults(namespace=".")
 
     @no_ns.caching(
         result=[
@@ -157,13 +157,13 @@ def test_clear_cache_multiple(default_cache, other_cache):
         return arg
 
     assert expensive(1) == 1
-    assert ":1" in default_cache
-    assert ":other_1" in other_cache
-    assert ":put_1" in default_cache
-    assert ":other_put_1" in other_cache
+    assert ".:1" in default_cache
+    assert ".:other_1" in other_cache
+    assert ".:put_1" in default_cache
+    assert ".:other_put_1" in other_cache
 
     expensive.clear_cache(1)
-    assert ":1" not in default_cache
-    assert ":other_1" not in other_cache
-    assert ":put_1" not in default_cache
-    assert ":other_put_1" not in other_cache
+    assert ".:1" not in default_cache
+    assert ".:other_1" not in other_cache
+    assert ".:put_1" not in default_cache
+    assert ".:other_put_1" not in other_cache

@@ -16,6 +16,9 @@ now_za = now.astimezone(pytz.timezone("Africa/Johannesburg"))
 
 uuid_ = uuid.uuid4()
 
+fixed_now = datetime.strptime("2021-03-05T22:09:00", "%Y-%m-%dT%H:%M:%S")
+fixed_za = fixed_now.astimezone(pytz.timezone("Africa/Johannesburg"))
+
 
 @pytest.mark.parametrize(
     "template,arg,result", [
@@ -38,15 +41,15 @@ uuid_ = uuid.uuid4()
         ("{arg}", {"a": [{"1", "2"}]}, "ADlpGhBMmmSh_aHiL0uUPSqdcUU"),
         ("{arg}", {4, 1, 3.1459}, "r0-avm04sP26OTBMUPiQMwPgyjs"),
         ("{arg}", {
-            "uuid": uuid_,
+            "uuid": uuid.UUID(hex="829b1eedacfd48c1b7ace88da1e1f895"),
             "decimal mole": Decimal(6.02214076),
             "set": {1, 2, 3},
-            "naive_datetime": now,
-            "datetime": now_za,
+            "naive_datetime": fixed_now,
+            "datetime": fixed_za,
             "float root 2": 1.41421,
             "None": None,
             "timedelta": timedelta.max
-        }, "i4frClBF46XDwazXHtPf7Kchkgs"),
+        }, "aKl2u125c8miAEcvm15zrSb6dvw"),
     ]
 )
 def test_string_formatter(template, arg, result):
