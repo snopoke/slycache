@@ -48,6 +48,7 @@ Use the cache on methods and functions::
 
    installation
    usage
+   frameworks
    modules
    contributing
    authors

@@ -1,9 +1,13 @@
 import os
-
-import django
 import pytest
 
 from slycache import CacheRemove, caches, slycache
+
+
+try:
+    import django
+except ImportError:
+    pytestmark = pytest.mark.skip
 
 
 @pytest.fixture(scope="module", autouse=True)
