@@ -354,8 +354,6 @@ class Slycache:
         return self._call(actions)
 
     def _call(self, actions: List[CacheAction]) -> Callable:
-        self.validate()
-
         def _decorator(func):
             if not callable(func):
                 raise SlycacheException(f"Decorator must be used on a function: {func!r}")
@@ -385,16 +383,13 @@ class Slycache:
 
         return _decorator
 
-    def validate(self):
-        self._cache_proxy.validate()
-
     @property
     def _cache_proxy(self):
         """Lazy initializer for proxy"""
         if not self._proxy:
             self._proxy = caches.get_default_proxy(DEFAULT_CACHE_NAME)
 
-        return self._proxy.merge_with_global_defaults()
+        return self._proxy
 
 
 caches = CacheHolder()

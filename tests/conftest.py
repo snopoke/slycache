@@ -9,14 +9,16 @@ from tests.mock_cache import DictCache
 def default_cache():
     cache = DictCache(DEFAULT_CACHE_NAME)
     caches.replace(DEFAULT_CACHE_NAME, cache)
-    return cache
+    yield cache
+    caches.deregister(DEFAULT_CACHE_NAME)
 
 
 @pytest.fixture
 def other_cache():
     cache = DictCache("other")
     caches.replace("other", cache)
-    return cache
+    yield cache
+    caches.deregister("other")
 
 
 @pytest.fixture

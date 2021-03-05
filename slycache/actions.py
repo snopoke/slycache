@@ -112,10 +112,9 @@ class ActionExecutor:
         self._func = func
         self._actions = actions
         self._key_generator = key_generator
+        self._proxy = proxy
         self._skip_get_ = None
-
-        for action in self._actions:
-            action.set_proxy(proxy)
+        self._init_done = False
 
         # temporary cache for keys to avoid having to re-generate them on cache miss
         self._key_cache = None
@@ -125,6 +124,13 @@ class ActionExecutor:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._key_cache = None
+
+    def _lazy_init(self):
+        if not self._init_done:
+            self._proxy = self._proxy.merge_with_global_defaults()
+            for action in self._actions:
+                action.set_proxy(self._proxy)
+            self._init_done = True
 
     def validate(self):
         """Validate actions and key templates"""
@@ -155,6 +161,8 @@ class ActionExecutor:
         """
         if self._skip_get:
             return NOTSET
+
+        self._lazy_init()
 
         for action in self._actions:
             for key in self._get_action_keys(action, call_args):
@@ -188,12 +196,15 @@ class ActionExecutor:
             result: The result returned from the invocation of the decorated function
             call_args: Dict of arguments from the invocation of the decorated function
         """
+        self._lazy_init()
+
         for action in self._actions:
             for key in self._get_action_keys(action, call_args):
                 action.call(key, self._func, call_args, result)
 
     def clear_cache(self, call_args: Dict):
         """Helper to clear the cache for a decorated function"""
+        self._lazy_init()
         for action in self._actions:
             remove_action = CacheRemoveAction(action.invocation)
             remove_action.set_proxy(action.proxy)
