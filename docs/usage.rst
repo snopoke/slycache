@@ -109,6 +109,8 @@ In the example above you can see that even though we are decorating different
 functions they are operating on the same set of cache keys because they
 share a common namespace.
 
+By default the maximum length of namespaces is 60 characters.
+
 Changing the defaults
 ---------------------
 The default ``slycache`` object comes with certain presets:
@@ -189,27 +191,75 @@ The above example would generate keys as follows::
 
     [namespace]:1234.user1
 
+Keys longer than 250 characters (excluding the namespace) will be converted into
+a base64 encoded SHA1 hash.
 
-Special type handling
-~~~~~~~~~~~~~~~~~~~~~
+Type handling
+~~~~~~~~~~~~~
 
-``datetime`` values receive special treatment when they appear in keys.
+Accepted types for keys are:
 
-Any timezone aware ``datetime`` object will be converted to UTC. This means that ``datetime`` objects
-with different timezones but representing the same point in time will be serialized the same way.
-
-Naive ``datetimes`` will be serialized without adjustment.
+* str, int, float, Decimal, bytes, bool
+* list, dict, set, frozenset
+* date, time (converted to ISO format)
+* timezone naive datetime (converted to ISO format)
+* timezone aware datetime (translated to UTC and then converted to ISO format)
+* timedelta (converted to total seconds)
 
 Advanced Usage
 --------------
 
 Multiple Cache Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+In certain circumstances it may be desirable to use multiple decorators on a single
+function, for example, caching the same value in multiple caches.
 
-TODO
+This can be accomplished by using the ``caching`` decorator:
+
+.. code:: python
+
+    slycache.register_backend("locmem", InMemoryBackend(), default_timeout=10)
+    slycache.register_backend("redis", RedisBackend(), default_timeout=60)
+
+    user_cache = slycache.with_defaults(namespace="user")
+
+    class User:
+        @user_cache.caching([
+            CacheResult("{username}", cache_name="locmem"),
+            CacheResult("{username}", cache_name="redis")
+        ])
+        @staticmethod
+        def get_by_username(username):
+            ...
+            return user
+
+        @user_cache.caching([
+            CacheResult("{id}", cache_name="locmem"),
+            CacheResult("{id}", cache_name="redis")
+        ])
+        @staticmethod
+        def get_by_id(id):
+            ...
+            return user
+
+        @user_cache.caching([
+            CachePut(["{self.username}", "{self.id}"], cache_value="self", cache_name="locmem"),
+            CachePut(["{self.username}", "{self.id}"], cache_value="self", cache_name="redis")
+        ])
+        def save(self):
+            ...
+
 
 Skip get
 ~~~~~~~~
+Result caching can also be done on functions where the cache check should be skipped
+and the decorated function should always be executed, for example update functions:
 
-TODO
+.. code:: python
 
+    @user_cache.cache_result("{username}", skip_get=True)
+    def activate_user(username):
+        user = get_user(username)
+        user.is_active = True
+        user.save()
+        return user
