@@ -354,6 +354,7 @@ class Slycache:
         return self._call(actions)
 
     def _call(self, actions: List[CacheAction]) -> Callable:
+
         def _decorator(func):
             if not callable(func):
                 raise SlycacheException(f"Decorator must be used on a function: {func!r}")

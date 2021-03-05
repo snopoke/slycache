@@ -8,7 +8,7 @@ import pytz
 from testil import assert_raises
 
 from slycache.exceptions import KeyFormatException
-from slycache.key_generator import (StringFormatKeyGenerator, StringFormatter)
+from slycache.key_generator import StringFormatKeyGenerator, StringFormatter
 
 now = datetime.utcnow()
 now_utc = now.astimezone(pytz.utc)
@@ -38,33 +38,35 @@ fixed_za = fixed_now.astimezone(pytz.timezone("Africa/Johannesburg"))
         ("{arg}", 1.3245, "1.3245"),
         ("{arg}", uuid_, str(uuid_)),
         ("{arg}", [1, 2, 3], "oB7aMuTgsTkydOkdGz6ez8XquoU"),
-        ("{arg}", {"a": [{"1", "2"}]}, "ADlpGhBMmmSh_aHiL0uUPSqdcUU"),
-        ("{arg}", {4, 1, 3.1459}, "r0-avm04sP26OTBMUPiQMwPgyjs"),
         ("{arg}", {
-            "uuid": uuid.UUID(hex="829b1eedacfd48c1b7ace88da1e1f895"),
-            "decimal mole": Decimal(6.02214076),
-            "set": {1, 2, 3},
-            "naive_datetime": fixed_now,
-            "datetime": fixed_za,
-            "float root 2": 1.41421,
-            "None": None,
-            "timedelta": timedelta.max
-        }, "aKl2u125c8miAEcvm15zrSb6dvw"),
+            "a": [{"1", "2"}]
+        }, "ADlpGhBMmmSh_aHiL0uUPSqdcUU"),
+        ("{arg}", {4, 1, 3.1459}, "r0-avm04sP26OTBMUPiQMwPgyjs"),
+        (
+            "{arg}", {
+                "uuid": uuid.UUID(hex="829b1eedacfd48c1b7ace88da1e1f895"),
+                "decimal mole": Decimal(6.02214076),
+                "set": {1, 2, 3},
+                "naive_datetime": fixed_now,
+                "datetime": fixed_za,
+                "float root 2": 1.41421,
+                "None": None,
+                "timedelta": timedelta.max
+            }, "aKl2u125c8miAEcvm15zrSb6dvw"
+        ),
     ]
 )
 def test_string_formatter(template, arg, result):
     assert StringFormatter().format(template, arg=arg) == result
 
 
-@pytest.mark.parametrize("arg", [
-    object(), StringFormatter()
-])
+@pytest.mark.parametrize("arg", [object(), StringFormatter()])
 def test_string_errors(arg):
     with assert_raises(ValueError):
         assert StringFormatter().format("{arg}", arg=arg)
 
 
-def something_to_cache(arg1, arg2=None, *args, kw_arg, kw_arg2=[], **kwargs):
+def something_to_cache(arg1, arg2=None, *args, kw_arg, kw_arg2=[], **kwargs):  # pylint: disable=all
     pass
 
 
@@ -89,8 +91,14 @@ def test_key_validation(template, message):
 
 @pytest.mark.parametrize(
     "template,call_args,expected", [
-        ("{arg1}{arg2}", {"arg1": 1, "arg2": 2}, "ns:12"),
-        ("{arg1}{arg2}", {"arg1": "a" * 100, "arg2": "b" * 200}, "ns:sQLZhus_7FcO9A_VTGuH5oFjV7g"),
+        ("{arg1}{arg2}", {
+            "arg1": 1,
+            "arg2": 2
+        }, "ns:12"),
+        ("{arg1}{arg2}", {
+            "arg1": "a" * 100,
+            "arg2": "b" * 200
+        }, "ns:sQLZhus_7FcO9A_VTGuH5oFjV7g"),
     ]
 )
 def test_key_formatting(template, call_args, expected):

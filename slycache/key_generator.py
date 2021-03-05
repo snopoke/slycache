@@ -20,7 +20,7 @@ try:
 except ImportError:
 
     def formatter_field_name_split(field_name):
-        return field_name._formatter_field_name_split()
+        return field_name._formatter_field_name_split()  # pylint: disable=protected-access
 
 
 class StringFormatKeyGenerator:
@@ -42,7 +42,7 @@ class StringFormatKeyGenerator:
             raise KeyFormatException(f"'key' must not be empty: function='{sig_str}'")
 
         args = get_arg_names(sig=sig)
-        for literal_text, field_name, format_spec, conversion in Formatter().parse(template):
+        for literal_text, field_name, _, _ in Formatter().parse(template):
             if literal_text:
                 continue
 
@@ -143,6 +143,7 @@ def hash_data(data):
 
 
 class SlycacheJSONEncoder(json.JSONEncoder):
+
     def default(self, o):
         r = handle_basic_types(o)
         if r is not None:
@@ -150,26 +151,26 @@ class SlycacheJSONEncoder(json.JSONEncoder):
 
         if isinstance(o, (set, frozenset)):
             return ["__set__"] + sorted(list(o))
-        else:
-            try:
-                return super().default(o)
-            except TypeError:
-                raise ValueError(f"Objects of type '{type(o)}' can not be used in keys")
+
+        try:
+            return super().default(o)
+        except TypeError:
+            raise ValueError(f"Objects of type '{type(o)}' can not be used in keys")
 
 
-def handle_basic_types(o):
+def handle_basic_types(o):  # pylint: disable=too-many-return-statements
     if isinstance(o, datetime.datetime):
         if o.utcoffset() is not None:
             return o.astimezone(utc).isoformat()
         return o.isoformat()
-    elif isinstance(o, datetime.date):
+    if isinstance(o, datetime.date):
         return o.isoformat()
-    elif isinstance(o, datetime.time):
+    if isinstance(o, datetime.time):
         if o.utcoffset() is not None:
             raise ValueError("Timezone-aware times can not be used in keys")
         return o.isoformat()
-    elif isinstance(o, datetime.timedelta):
+    if isinstance(o, datetime.timedelta):
         return str(o.total_seconds())
-    elif isinstance(o, (decimal.Decimal, uuid.UUID)):
+    if isinstance(o, (decimal.Decimal, uuid.UUID)):
         return str(o)
     return None
