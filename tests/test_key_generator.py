@@ -1,5 +1,7 @@
 import re
-from datetime import datetime
+import uuid
+from datetime import datetime, timedelta
+from decimal import Decimal
 
 import pytest
 import pytz
@@ -12,6 +14,8 @@ now = datetime.utcnow()
 now_utc = now.astimezone(pytz.utc)
 now_za = now.astimezone(pytz.timezone("Africa/Johannesburg"))
 
+uuid_ = uuid.uuid4()
+
 
 @pytest.mark.parametrize(
     "template,arg,result", [
@@ -23,14 +27,38 @@ now_za = now.astimezone(pytz.timezone("Africa/Johannesburg"))
         ("{arg}", now_za, now_utc.isoformat()),
         ("{arg:%Y-%m-%d}", now, now.strftime("%Y-%m-%d")),
         ("{arg!s}", now, str(now)),
+        ("{arg}", timedelta(days=1), "86400.0"),
+        ("{arg}", now_utc.date(), now.date().isoformat()),
+        ("{arg}", now.time(), now.time().isoformat()),
         ("{arg}", None, "None"),
-        ("{arg}", [1, 2, 3], "wGbQFovqHUXHDnWT5Gj1LkQdoEk"),
-        ("{arg}", {"a": [{"1", "2"}]}, "rRzL3lu24Aw9yPWB2lN52NOF3WQ"),
-        ("{arg}", {"a", 1, 3.1459}, "Q_L5025a8laXSaZRviVAlsd-j84"),
+        ("{arg}", Decimal(1.3245), str(Decimal(1.3245))),
+        ("{arg}", 1.3245, "1.3245"),
+        ("{arg}", uuid_, str(uuid_)),
+        ("{arg}", [1, 2, 3], "oB7aMuTgsTkydOkdGz6ez8XquoU"),
+        ("{arg}", {"a": [{"1", "2"}]}, "ADlpGhBMmmSh_aHiL0uUPSqdcUU"),
+        ("{arg}", {4, 1, 3.1459}, "r0-avm04sP26OTBMUPiQMwPgyjs"),
+        ("{arg}", {
+            "uuid": uuid_,
+            "decimal mole": Decimal(6.02214076),
+            "set": {1, 2, 3},
+            "naive_datetime": now,
+            "datetime": now_za,
+            "float root 2": 1.41421,
+            "None": None,
+            "timedelta": timedelta.max
+        }, "i4frClBF46XDwazXHtPf7Kchkgs"),
     ]
 )
 def test_string_formatter(template, arg, result):
     assert StringFormatter().format(template, arg=arg) == result
+
+
+@pytest.mark.parametrize("arg", [
+    object(), StringFormatter()
+])
+def test_string_errors(arg):
+    with assert_raises(ValueError):
+        assert StringFormatter().format("{arg}", arg=arg)
 
 
 def something_to_cache(arg1, arg2=None, *args, kw_arg, kw_arg2=[], **kwargs):

@@ -1,8 +1,12 @@
 import base64
 import datetime
+import decimal
 import hashlib
 import inspect
+import json
+import uuid
 from inspect import Parameter
+from numbers import Number
 from string import Formatter
 
 from pytz import utc
@@ -116,42 +120,56 @@ class StringFormatter(Formatter):
     """Custom formatter to provide more sensible default format for datetimes.
     """
 
-    def convert_field(self, value, conversion):
-        if conversion is None:
-            if isinstance(value, datetime.datetime):
-                if value.tzinfo:
-                    return value.astimezone(utc).isoformat()
-            return value
-        return super().convert_field(value, conversion)
-
     def format_field(self, value, format_spec):
         if not format_spec:
             return self._format_field(value)
         return super().format_field(value, format_spec)
 
     def _format_field(self, value):
-        if isinstance(value, datetime.datetime):
-            return value.isoformat()
-        if isinstance(value, (tuple, list, set, frozenset, dict)):
-            return make_hash(value)
-        return super().format_field(value, "")
+        if value is None:
+            return "None"
+        if isinstance(value, (str, bool, Number, bytes)):
+            return super().format_field(value, "")
+        ret = handle_basic_types(value)
+        if ret is not None:
+            return ret
+        return hash_data(value)
 
 
-def make_hash(o, hash_factory=hashlib.sha1):
-    # https://stackoverflow.com/a/42151923/632517
-    hasher = hash_factory()
-    hasher.update(repr(make_hashable(o)).encode())
-    return base64.urlsafe_b64encode(hasher.digest()).decode().rstrip("=")
+def hash_data(data):
+    serialized = json.dumps(data, sort_keys=True, cls=SlycacheJSONEncoder)
+    hashed = hashlib.sha1(serialized.encode("utf8"))
+    return base64.urlsafe_b64encode(hashed.digest()).decode().rstrip("=")
 
 
-def make_hashable(o):
-    if isinstance(o, (tuple, list)):
-        return (type(o),) + tuple(make_hashable(e) for e in o)
+class SlycacheJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        r = handle_basic_types(o)
+        if r is not None:
+            return r
 
-    if isinstance(o, dict):
-        return (type(o),) + tuple(sorted((k, make_hashable(v)) for k, v in o.items()))
+        if isinstance(o, (set, frozenset)):
+            return ["__set__"] + sorted(list(o))
+        else:
+            try:
+                return super().default(o)
+            except TypeError:
+                raise ValueError(f"Objects of type '{type(o)}' can not be used in keys")
 
-    if isinstance(o, (set, frozenset)):
-        return (type(o),) + tuple(sorted(make_hashable(e) for e in o))
 
-    return format(o)
+def handle_basic_types(o):
+    if isinstance(o, datetime.datetime):
+        if o.utcoffset() is not None:
+            return o.astimezone(utc).isoformat()
+        return o.isoformat()
+    elif isinstance(o, datetime.date):
+        return o.isoformat()
+    elif isinstance(o, datetime.time):
+        if o.utcoffset() is not None:
+            raise ValueError("Timezone-aware times can not be used in keys")
+        return o.isoformat()
+    elif isinstance(o, datetime.timedelta):
+        return str(o.total_seconds())
+    elif isinstance(o, (decimal.Decimal, uuid.UUID)):
+        return str(o)
+    return None
