@@ -113,6 +113,9 @@ class CacheHolder:
         except KeyError:
             raise InvalidCacheError(f"Slycache {name} not configured")
 
+    def __contains__(self, name):
+        return name in self._caches
+
 
 KeysType = Union[str, List[str]]
 
