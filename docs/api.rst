@@ -1,6 +1,6 @@
-==========================
-Slycache API documentation
-==========================
+===
+API
+===
 
 
 .. autofunction::  slycache.register_backend

@@ -92,19 +92,37 @@ html_theme = 'alabaster'
 # theme further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'description': 'Python caching API for services.',
+    'github_button': False,
+    'github_banner': True,
+    'github_user': 'snopoke',
+    'github_repo': 'slycache',
+    'extra_nav_links': {
+        'Slycache @ PyPI': 'https://pypi.python.org/pypi/slycache',
+        'Slycache @ GitHub': 'https://github.com/snopoke/slycache',
+    }
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+html_sidebars = {
+    '**': [
+        'about.html',
+        'localtoc.html',
+        'sidebarintro.html',
+        'relations.html',
+        'searchbox.html',
+    ]
+}
 
 # -- Options for HTMLHelp output ---------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'slycachedoc'
-
 
 # -- Options for LaTeX output ------------------------------------------
 
