@@ -36,7 +36,8 @@ defined by the :class:`slycache.CacheInterface` class.
 
 Slycache comes with build in support for the following backends:
 
-* TODO
+* :ref:`django`
+* :ref:`flask-cache`
 
 To use any other backend you must define a class the conforms to the
 :class:`slycache.CacheInterface` interface and register it with ``slycache``::
