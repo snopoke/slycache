@@ -1,7 +1,7 @@
 import re
 import uuid
 from datetime import datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_UP
 
 import pytest
 import pytz
@@ -45,14 +45,14 @@ fixed_za = fixed_now.astimezone(pytz.timezone("Africa/Johannesburg"))
         (
             "{arg}", {
                 "uuid": uuid.UUID(hex="829b1eedacfd48c1b7ace88da1e1f895"),
-                "decimal mole": Decimal(6.02214076),
+                "decimal mole": Decimal(6.02214076).quantize(Decimal('0.00000000'), rounding=ROUND_UP),
                 "set": {1, 2, 3},
                 "naive_datetime": fixed_now,
                 "datetime": fixed_za,
                 "float root 2": 1.41421,
                 "None": None,
                 "timedelta": timedelta.max
-            }, "aKl2u125c8miAEcvm15zrSb6dvw"
+            }, "E3cU_FuKOj8vGXfIj0PM8dyIYt0"
         ),
     ]
 )
