@@ -40,6 +40,8 @@ sphinx = "*"
 yapf = "*"
 nox = "*"
 testil = "^1.1"
+pytest-repeat = "^0.9.1"
+pytest-randomly = "^3.5.0"
 
 [tool.poetry.extras]
 django = ["Django"]
