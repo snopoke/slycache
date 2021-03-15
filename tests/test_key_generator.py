@@ -11,13 +11,13 @@ from slycache.exceptions import KeyFormatException
 from slycache.key_generator import StringFormatKeyGenerator, StringFormatter
 
 now = datetime.utcnow()
-now_utc = now.astimezone(pytz.utc)
-now_za = now.astimezone(pytz.timezone("Africa/Johannesburg"))
+now_utc = now.replace(tzinfo=pytz.utc)
+now_za = now_utc.astimezone(pytz.timezone("Africa/Johannesburg"))
 
 uuid_ = uuid.uuid4()
 
 fixed_now = datetime.strptime("2021-03-05T22:09:00", "%Y-%m-%dT%H:%M:%S")
-fixed_za = fixed_now.astimezone(pytz.timezone("Africa/Johannesburg"))
+fixed_za = fixed_now.replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Africa/Johannesburg"))
 
 
 @pytest.mark.parametrize(
@@ -52,7 +52,7 @@ fixed_za = fixed_now.astimezone(pytz.timezone("Africa/Johannesburg"))
                 "float root 2": 1.41421,
                 "None": None,
                 "timedelta": timedelta.max
-            }, "E3cU_FuKOj8vGXfIj0PM8dyIYt0"
+            }, "FH6LoXCXF_CWnVnntvy7XWV142E"
         ),
     ]
 )
