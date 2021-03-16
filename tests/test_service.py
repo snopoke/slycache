@@ -135,10 +135,8 @@ def make_service(cache: Slycache):
             self.data = data or {}
 
         @service_cache.caching(
-            result=[
-                CacheResult(["{user_id}"], skip_get=True),
-                CacheResult(["{username}"], skip_get=True),
-            ]
+            CacheResult(["{user_id}"], skip_get=True),
+            CacheResult(["{username}"], skip_get=True),
         )
         def update_user(self, user_id: str, username: str):
             user = self.data[user_id]
@@ -172,10 +170,10 @@ def make_service(cache: Slycache):
             self.data[user.id] = user
             self.data[user.username] = user
 
-        @service_cache.caching(put=[
+        @service_cache.caching(
             CachePut(["{user.id}"]),
             CachePut(["{user.username}"]),
-        ])
+        )
         def save_with_multiple(self, user: User):
             self.data[user.id] = user
             self.data[user.username] = user
@@ -202,10 +200,10 @@ def make_service(cache: Slycache):
             except KeyError:
                 pass
 
-        @service_cache.caching(remove=[
+        @service_cache.caching(
             CacheRemove(["{user.id}"]),
             CacheRemove(["{user.username}"]),
-        ])
+        )
         def delete_multiple(self, user: User):
             try:
                 del self.data[user.id]

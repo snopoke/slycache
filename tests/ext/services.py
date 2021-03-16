@@ -30,6 +30,6 @@ class UserServiceMultiple:
         return username
 
     @staticmethod
-    @user_cache.caching(remove=[CacheRemove(["{username}"]), CacheRemove(["{username}"], cache_name="other")])
+    @user_cache.caching(CacheRemove(["{username}"]), CacheRemove(["{username}"], cache_name="other"))
     def delete(username):
         pass

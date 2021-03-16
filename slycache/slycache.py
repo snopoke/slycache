@@ -10,7 +10,7 @@ from .actions import (ActionExecutor, CacheAction, CachePutAction,
 from .const import DEFAULT_CACHE_NAME, NOTSET, NotSet
 from .exceptions import InvalidCacheError, SlycacheException
 from .interface import CacheInterface
-from .invocations import CachePut, CacheRemove, CacheResult
+from .invocations import CachePut, CacheRemove, CacheResult, CacheInvocation
 from .key_generator import StringFormatKeyGenerator
 
 log = logging.getLogger("slycache")
@@ -221,8 +221,7 @@ class Slycache:
         """
         if isinstance(keys, str):
             keys = [keys]
-        invocation = CacheResult(keys, cache_name, namespace, timeout, skip_get)
-        return self.caching(result=[invocation])
+        return self.caching(CacheResult(keys, cache_name, namespace, timeout, skip_get))
 
     def cache_put(
         self,
@@ -271,8 +270,7 @@ class Slycache:
         """
         if isinstance(keys, str):
             keys = [keys]
-        invocation = CachePut(keys, cache_name, namespace, cache_value, timeout)
-        return self.caching(put=[invocation])
+        return self.caching(CachePut(keys, cache_name, namespace, cache_value, timeout))
 
     def cache_remove(
         self,
@@ -310,16 +308,9 @@ class Slycache:
         """
         if isinstance(keys, str):
             keys = [keys]
-        invocation = CacheRemove(keys, cache_name, namespace)
-        return self.caching(remove=[invocation])
+        return self.caching(CacheRemove(keys, cache_name, namespace))
 
-    def caching(
-        self,
-        *,
-        result: Optional[List[CacheResult]] = None,
-        put: Optional[List[CachePut]] = None,
-        remove: Optional[List[CacheRemove]] = None
-    ):
+    def caching(self, *operations: Union[CacheResult, CachePut, CacheRemove]):
         """
         A function level decorator used to execute multiple cache operations
         after the execution of the decorated function.
@@ -334,27 +325,27 @@ class Slycache:
 
         .. code::
 
-            @slycache.caching(result=[
+            @slycache.caching(
                 CacheResult("{username}", cache_name="local_memory"),
                 CacheResult("{username}", cache_name="redis"),
-            ])
+            )
             def get_user(username: str):
                 ...
 
         Args:
-            result (:obj:`list` of :class:`slycache.CacheResult`, optional): ``cache_result`` operations to execute.
-            put (:obj:`list` of :class:`slycache.CachePut`, optional): ``cache_put`` operations to execute
-            remove (:obj:`list` of :class:`slycache.CacheRemove`, optional): ``cache_remove`` operations to execute
+            *operations (
+                :class:`slycache.CacheResult` or
+                :class:`slycache.CachePut` or
+                :class:`slycache.CacheRemove`): cache operations to execute
         """
-
-        actions = [
-            action_class(invocation) for invocations, action_class in (
-                (result, CacheResultAction),
-                (put, CachePutAction),
-                (remove, CacheRemoveAction),
-            ) if invocations for invocation in invocations
-        ]
-        return self._call(actions)
+        type_mapping = {
+            CacheResult: CacheResultAction,
+            CachePut: CachePutAction,
+            CacheRemove: CacheRemoveAction
+        }
+        return self._call([
+            type_mapping[action.__class__](action) for action in operations
+        ])
 
     def _call(self, actions: List[CacheAction]) -> Callable:
 

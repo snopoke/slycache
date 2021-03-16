@@ -147,11 +147,9 @@ def test_clear_cache_multiple(default_cache, other_cache):
     no_ns = slycache.with_defaults(namespace=".")
 
     @no_ns.caching(
-        result=[
-            CacheResult(["{arg}"], skip_get=True),
-            CacheResult(["other_{arg}"], skip_get=True, cache_name="other"),
-        ],
-        put=[CachePut(["put_{arg}"]), CachePut(["other_put_{arg}"], cache_name="other")]
+        CacheResult(["{arg}"], skip_get=True),
+        CacheResult(["other_{arg}"], skip_get=True, cache_name="other"),
+        CachePut(["put_{arg}"]), CachePut(["other_put_{arg}"], cache_name="other")
     )
     def expensive(arg):
         return arg

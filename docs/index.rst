@@ -280,28 +280,28 @@ This can be accomplished by using the ``caching`` decorator:
     user_cache = slycache.with_defaults(namespace="user")
 
     class User:
-        @user_cache.caching([
+        @user_cache.caching(
             CacheResult("{username}", cache_name="locmem"),
             CacheResult("{username}", cache_name="redis")
-        ])
+        )
         @staticmethod
         def get_by_username(username):
             ...
             return user
 
-        @user_cache.caching([
+        @user_cache.caching(
             CacheResult("{id}", cache_name="locmem"),
             CacheResult("{id}", cache_name="redis")
-        ])
+        )
         @staticmethod
         def get_by_id(id):
             ...
             return user
 
-        @user_cache.caching([
+        @user_cache.caching(
             CachePut(["{self.username}", "{self.id}"], cache_value="self", cache_name="locmem"),
             CachePut(["{self.username}", "{self.id}"], cache_value="self", cache_name="redis")
-        ])
+        )
         def save(self):
             ...
 
