@@ -28,8 +28,11 @@ class StringFormatKeyGenerator:
     using the Python string Formatter class.
     """
 
-    @staticmethod
-    def validate(template, func):  # pylint: disable=unused-argument
+    def __init__(self, max_key_length=250, max_namespace_length=60):
+        self.max_key_length = max_key_length
+        self.max_namespace_length = max_namespace_length
+
+    def validate(self, template, func):  # pylint: disable=unused-argument
         if template is None:
             return
 
@@ -64,15 +67,14 @@ class StringFormatKeyGenerator:
                         f"Mutable argument type not permitted for caching: '{first}={default}'. Function='{sig_str}'"
                     )
 
-    @staticmethod
-    def generate(namespace, key_template, func, call_args) -> str:
+    def generate(self, namespace, key_template, func, call_args) -> str:
         args = get_arg_names(func=func)
         valid_args = {name: call_args[name] for name in args if name in call_args}
         if namespace is None:
-            namespace = generate_namespace(func, args)
+            namespace = generate_namespace(func, args, self.max_namespace_length)
         elif not namespace:
             raise NamespaceException("Namespace must not be empty")
-        return generate_key(namespace, key_template, valid_args, max_len=250)
+        return generate_key(namespace, key_template, valid_args, max_len=self.max_key_length)
 
 
 def get_arg_names(func=None, sig=None):

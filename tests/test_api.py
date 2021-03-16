@@ -65,7 +65,7 @@ def _test_cache(default_cache, other_cache, cache, timeout, namespace, override_
         cache_fixture = other_cache
 
     ns = namespace if namespace is not Ellipsis else None
-    expected_key = StringFormatKeyGenerator.generate(ns, "{arg}", result_func, {"arg": arg})
+    expected_key = StringFormatKeyGenerator().generate(ns, "{arg}", result_func, {"arg": arg})
     entry = cache_fixture.get_entry(expected_key)
     assert cache_fixture.get(expected_key) == result, entry
 

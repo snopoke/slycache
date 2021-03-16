@@ -9,7 +9,7 @@ from .actions import (ActionExecutor, CacheAction, CachePutAction,
                       CacheRemoveAction, CacheResultAction)
 from .const import DEFAULT_CACHE_NAME, NOTSET, NotSet
 from .exceptions import InvalidCacheError, SlycacheException
-from .interface import CacheInterface
+from .interface import CacheInterface, KeyGenerator
 from .invocations import CachePut, CacheRemove, CacheResult, CacheInvocation
 from .key_generator import StringFormatKeyGenerator
 
@@ -122,9 +122,9 @@ KeysType = Union[str, List[str]]
 
 class Slycache:
 
-    def __init__(self, proxy: ProxyWithDefaults = None, key_generator=None):
+    def __init__(self, proxy: ProxyWithDefaults = None, key_generator: KeyGenerator = None):
         self._proxy = proxy
-        self._key_generator = key_generator or StringFormatKeyGenerator
+        self._key_generator = key_generator or StringFormatKeyGenerator()
         self._merged = not self._proxy
 
     @staticmethod

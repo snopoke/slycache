@@ -47,8 +47,7 @@ class CacheInterface(Protocol):
 class KeyGenerator(Protocol):
     """Protocol for a key generator class."""
 
-    @staticmethod
-    def validate(template: str, func: Callable):
+    def validate(self, template: str, func: Callable):
         """Validate a key template.
 
         Arguments:
@@ -60,8 +59,7 @@ class KeyGenerator(Protocol):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def generate(namespace: Optional[str], template: str, func: Callable, call_args: Dict) -> str:
+    def generate(self, namespace: Optional[str], template: str, func: Callable, call_args: Dict) -> str:
         """Generate a key for use in a cache operation.
 
         Arguments:

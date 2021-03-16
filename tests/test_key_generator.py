@@ -84,9 +84,9 @@ def something_to_cache(arg1, arg2=None, *args, kw_arg, kw_arg2=[], **kwargs):  #
 def test_key_validation(template, message):
     if message is not None:
         with assert_raises(KeyFormatException, msg=re.compile(message)):
-            StringFormatKeyGenerator.validate(template, something_to_cache)
+            StringFormatKeyGenerator().validate(template, something_to_cache)
     else:
-        StringFormatKeyGenerator.validate(template, something_to_cache)
+        StringFormatKeyGenerator().validate(template, something_to_cache)
 
 
 @pytest.mark.parametrize(
@@ -102,5 +102,5 @@ def test_key_validation(template, message):
     ]
 )
 def test_key_formatting(template, call_args, expected):
-    key = StringFormatKeyGenerator.generate("ns", template, something_to_cache, call_args)
+    key = StringFormatKeyGenerator().generate("ns", template, something_to_cache, call_args)
     assert key == expected
