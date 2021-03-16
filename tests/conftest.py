@@ -1,7 +1,8 @@
 import pytest
 
 from slycache import Slycache, caches
-from slycache.const import DEFAULT_CACHE_NAME
+from slycache.const import DEFAULT_CACHE_NAME, NOTSET
+from slycache.slycache import ProxyWithDefaults
 from tests.mock_cache import DictCache
 
 
@@ -29,5 +30,5 @@ def clean_slate():
     assert caches._caches == {}  # pylint: disable=protected-access
 
     default = Slycache()
-    assert default._proxy is None  # pylint: disable=protected-access
+    assert default._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, NOTSET, NOTSET, False)  # pylint: disable=protected-access
     return default

@@ -12,6 +12,13 @@ def result_func(arg):  # pylint: disable=unused-argument
     return getattr(result_func, "return_value")
 
 
+def test_lazyiness(clean_slate):
+    """Should not raise an exception even though no caches have been configured yet"""
+    @clean_slate.cache_result("bob")
+    def make_bob():
+        return "bob"
+
+
 @pytest.mark.parametrize(
     "cache, timeout, namespace", [
         (Ellipsis, Ellipsis, Ellipsis),

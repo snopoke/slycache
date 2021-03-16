@@ -32,6 +32,7 @@ class ProxyWithDefaults:
         return None if self.namespace is NOTSET else self.namespace
 
     def merge_with_global_defaults(self):
+        """Just in time lookup of the registered cache proxy and it's defaults."""
         if self._merged:
             return self
 
@@ -123,9 +124,8 @@ KeysType = Union[str, List[str]]
 class Slycache:
 
     def __init__(self, proxy: ProxyWithDefaults = None, key_generator: KeyGenerator = None):
-        self._proxy = proxy
+        self._proxy = proxy or ProxyWithDefaults(DEFAULT_CACHE_NAME)
         self._key_generator = key_generator or StringFormatKeyGenerator()
-        self._merged = not self._proxy
 
     @staticmethod
     def register_backend(
@@ -353,7 +353,7 @@ class Slycache:
             if not callable(func):
                 raise SlycacheException(f"Decorator must be used on a function: {func!r}")
 
-            action = ActionExecutor(func, actions, self._key_generator, self._cache_proxy)
+            action = ActionExecutor(func, actions, self._key_generator, self._proxy)
             action.validate()
 
             @wraps(func)
@@ -377,14 +377,6 @@ class Slycache:
             return _inner
 
         return _decorator
-
-    @property
-    def _cache_proxy(self):
-        """Lazy initializer for proxy"""
-        if not self._proxy:
-            self._proxy = caches.get_default_proxy(DEFAULT_CACHE_NAME)
-
-        return self._proxy
 
 
 caches = CacheHolder()
