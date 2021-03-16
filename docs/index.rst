@@ -6,8 +6,8 @@ A caching API for Python services that is loosely modeled after the Java Caching
 
 .. _JSR107: https://docs.google.com/document/d/1YZ-lrH6nW871Vd9Z34Og_EqbX_kxxJi55UrSn4yL2Ak/edit
 
-.. warning::
-    This library is in Alpha stage and not ready for production use.
+.. note::
+    This library is in Beta stage and not ready for production use.
 
 Installation
 ------------

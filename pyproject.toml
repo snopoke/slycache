@@ -3,12 +3,12 @@
 name = "slycache"
 version = "0.2.0"
 homepage = "https://github.com/snopoke/slycache"
-description = "Top-level package for slycache."
+description = "Service caching API"
 authors = ["snopoke <simongdkelly@gmail.com>"]
 readme = "README.rst"
 license =  "BSD-3-Clause"
 classifiers=[
-    'Development Status :: 2 - Pre-Alpha',
+    'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: BSD License',
     'Natural Language :: English',
@@ -16,6 +16,9 @@ classifiers=[
     'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Framework :: Django',
+    'Framework :: Flask'
 ]
 packages = [
     { include = "slycache" },
