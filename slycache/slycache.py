@@ -36,7 +36,7 @@ class ProxyWithDefaults:
         if self._merged:
             return self
 
-        defaults = caches.get_default_proxy(self.cache_name)
+        defaults = caches.get_proxy(self.cache_name)
         updates = {"_merged": True}
         if self.timeout is NOTSET:
             updates["timeout"] = defaults.timeout
@@ -44,10 +44,6 @@ class ProxyWithDefaults:
             updates["namespace"] = defaults.namespace
 
         return replace(self, **updates)
-
-    def validate(self):
-        if not caches[self.cache_name]:
-            raise InvalidCacheError(f"Slycache {self.cache_name} not configured")
 
     def get(self, key: str, default: Any = None) -> Any:
         return caches[self.cache_name].get(key, default)
@@ -102,7 +98,7 @@ class CacheHolder:
     def registered_names(self):
         return list(self._caches)
 
-    def get_default_proxy(self, name):
+    def get_proxy(self, name):
         try:
             return self._proxies[name]
         except KeyError:

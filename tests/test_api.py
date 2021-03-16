@@ -1,8 +1,9 @@
 import uuid
 
 import pytest
+from testil import assert_raises
 
-from slycache import CachePut, CacheResult
+from slycache import CachePut, CacheResult, SlycacheException
 from slycache.const import DEFAULT_CACHE_NAME, NOTSET
 from slycache.key_generator import StringFormatKeyGenerator
 from slycache.slycache import ProxyWithDefaults, caches, slycache
@@ -17,6 +18,11 @@ def test_lazyiness(clean_slate):
     @clean_slate.cache_result("bob")
     def make_bob():
         return "bob"
+
+
+def test_decorate_non_callable():
+    with assert_raises(SlycacheException):
+        slycache.cache_result("")("string")
 
 
 @pytest.mark.parametrize(
@@ -76,7 +82,7 @@ def _test_cache(default_cache, other_cache, cache, timeout, namespace, override_
     entry = cache_fixture.get_entry(expected_key)
     assert cache_fixture.get(expected_key) == result, entry
 
-    proxy = caches.get_default_proxy(cache_alias)
+    proxy = caches.get_proxy(cache_alias)
     expected_timeout = timeout if timeout is not Ellipsis else proxy.timeout
     assert entry.timeout == expected_timeout
 
