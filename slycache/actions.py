@@ -57,14 +57,16 @@ class CacheResultAction(CacheAction):
     def call(self, cache_key: str, func: Callable, call_args: Dict, result: Any):
         value = self._get_value(call_args, result)
         if value is None:
-            log.debug(
-                "ignoring None value, cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__,
-                cache_key
-            )
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug(
+                    "ignoring None value, cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__,
+                    cache_key
+                )
             return
 
         self.proxy.set(cache_key, value)
-        log.debug("cache_set: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("cache_set: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
 
     def _get_value(  # pylint: disable=no-self-use
         self, call_args: Dict, result: Any  # pylint: disable=unused-argument
@@ -99,7 +101,8 @@ class CacheRemoveAction(CacheAction):
         """
 
     def call(self, cache_key: str, func: Callable, call_args: Dict, result: Any):
-        log.debug("cache_remove: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("cache_remove: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
         self.proxy.delete(cache_key)
 
 
@@ -168,13 +171,15 @@ class ActionExecutor:
             for key in self._get_action_keys(action, call_args):
                 result = action.proxy.get(key, default=NOTSET)
                 if result is not NOTSET:
-                    log.debug(
-                        "cache hit: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
-                    )
+                    if log.isEnabledFor(logging.DEBUG):
+                        log.debug(
+                            "cache hit: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
+                        )
                     return result
-                log.debug(
-                    "cache miss: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
-                )
+                if log.isEnabledFor(logging.DEBUG):
+                    log.debug(
+                        "cache miss: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
+                    )
         return NOTSET
 
     def _get_action_keys(self, action: CacheAction, call_args):
