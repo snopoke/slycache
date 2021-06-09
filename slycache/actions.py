@@ -1,3 +1,4 @@
+import inspect
 import logging
 from abc import ABCMeta, abstractmethod
 from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional,
@@ -119,6 +120,10 @@ class ActionExecutor:
         self._skip_get_ = None
         self._init_done = False
 
+        # do these here to avoid having to do them for every call
+        self._func_sig = inspect.signature(func)
+        self._func_name = func.__name__
+
         # temporary cache for keys to avoid having to re-generate them on cache miss
         self._key_cache = None
 
@@ -173,12 +178,12 @@ class ActionExecutor:
                 if result is not NOTSET:
                     if log.isEnabledFor(logging.DEBUG):
                         log.debug(
-                            "cache hit: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
+                            "cache hit: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func_name
                         )
                     return result
                 if log.isEnabledFor(logging.DEBUG):
                     log.debug(
-                        "cache miss: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
+                        "cache miss: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func_name
                     )
         return NOTSET
 
@@ -187,7 +192,7 @@ class ActionExecutor:
             return self._key_cache[action]
 
         keys = [
-            self._key_generator.generate(action.proxy.key_namespace, key, self._func, call_args)
+            self._key_generator.generate(action.proxy.key_namespace, key, self._func_name, self._func_sig, call_args)
             for key in action.invocation.keys
         ]
         if self._key_cache is not None:

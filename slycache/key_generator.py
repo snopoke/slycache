@@ -67,11 +67,11 @@ class StringFormatKeyGenerator:
                         f"Mutable argument type not permitted for caching: '{first}={default}'. Function='{sig_str}'"
                     )
 
-    def generate(self, namespace, key_template, func, call_args) -> str:
-        args = get_arg_names(func=func)
+    def generate(self, namespace, key_template, func_name, func_signature, call_args) -> str:
+        args = get_arg_names(sig=func_signature)
         valid_args = {name: call_args[name] for name in args if name in call_args}
         if namespace is None:
-            namespace = generate_namespace(func, args, self.max_namespace_length)
+            namespace = generate_namespace(func_name, args, self.max_namespace_length)
         elif not namespace:
             raise NamespaceException("Namespace must not be empty")
         return generate_key(namespace, key_template, valid_args, max_len=self.max_key_length)
@@ -98,10 +98,10 @@ def _get_named_args(sig):
     return args
 
 
-def generate_namespace(func, named_args: list, max_len=60) -> str:
+def generate_namespace(func_name, named_args: list, max_len=60) -> str:
     """Generate a namespace for the given function"""
     args = ",".join(named_args)
-    full_namespace = f"{func.__name__}:{args}"
+    full_namespace = f"{func_name}:{args}"
     if len(full_namespace) <= max_len:
         return full_namespace
     return full_namespace[:max_len - 8] + _hash(full_namespace, 8)

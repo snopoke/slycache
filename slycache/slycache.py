@@ -352,9 +352,11 @@ class Slycache:
             action = ActionExecutor(func, actions, self._key_generator, self._proxy)
             action.validate()
 
+            signature = inspect.signature(func)
+
             @wraps(func)
             def _inner(*args, **kwargs):
-                call_args = inspect.signature(func).bind(*args, **kwargs).arguments
+                call_args = signature.bind(*args, **kwargs).arguments
 
                 with action:
                     result = action.get_cached(call_args)
@@ -366,7 +368,7 @@ class Slycache:
                     return result
 
             def _clear(*args, **kwargs):
-                call_args = inspect.signature(func).bind(*args, **kwargs).arguments
+                call_args = signature.bind(*args, **kwargs).arguments
                 action.clear_cache(call_args)
 
             _inner.clear_cache = _clear
