@@ -20,6 +20,9 @@ class DictCache:
         self._alias = alias
         self._cache = {}
 
+    def clear(self):
+        self._cache.clear()
+
     def init(self, data: dict):
         for key, value in data.items():
             self.set(key, value)
