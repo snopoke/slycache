@@ -152,7 +152,7 @@ class ActionExecutor:
         if self._skip_get_ is None:
             skip_get = {action.invocation.skip_get for action in self._actions}
             if len(skip_get) > 1:
-                raise SlycacheException("All actions agree on 'skip_get'")
+                raise SlycacheException("All actions must agree on 'skip_get'")
             self._skip_get_ = list(skip_get)[0]
         return self._skip_get_
 
