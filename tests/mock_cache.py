@@ -15,10 +15,18 @@ class Entry(NamedTuple):
 
 
 class DictCache:
+    missing = object()
 
     def __init__(self, alias: str):
         self._alias = alias
         self._cache = {}
+        self.hits = 0
+        self.misses = 0
+
+    def clear(self):
+        self._cache.clear()
+        self.hits = 0
+        self.misses = 0
 
     def init(self, data: dict):
         for key, value in data.items():
@@ -28,8 +36,12 @@ class DictCache:
         return self._cache[key]
 
     def get(self, key: str, default: Any = None) -> Any:
-        entry = self._cache.get(key, Entry(key, default, None, None))
-        return None if entry.expired else entry.value
+        entry = self._cache.get(key, self.missing)
+        if entry is self.missing or entry.expired:
+            self.misses += 1
+            return default
+        self.hits += 1
+        return entry.value
 
     def set(self, key: str, value: Any, timeout: int = None):
         entry = Entry(key, value, timeout, timeout and datetime.utcnow() + timedelta(seconds=timeout))

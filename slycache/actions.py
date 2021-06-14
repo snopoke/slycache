@@ -1,3 +1,4 @@
+import inspect
 import logging
 from abc import ABCMeta, abstractmethod
 from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional,
@@ -57,14 +58,16 @@ class CacheResultAction(CacheAction):
     def call(self, cache_key: str, func: Callable, call_args: Dict, result: Any):
         value = self._get_value(call_args, result)
         if value is None:
-            log.debug(
-                "ignoring None value, cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__,
-                cache_key
-            )
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug(
+                    "ignoring None value, cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__,
+                    cache_key
+                )
             return
 
         self.proxy.set(cache_key, value)
-        log.debug("cache_set: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("cache_set: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
 
     def _get_value(  # pylint: disable=no-self-use
         self, call_args: Dict, result: Any  # pylint: disable=unused-argument
@@ -99,7 +102,8 @@ class CacheRemoveAction(CacheAction):
         """
 
     def call(self, cache_key: str, func: Callable, call_args: Dict, result: Any):
-        log.debug("cache_remove: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("cache_remove: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
         self.proxy.delete(cache_key)
 
 
@@ -115,6 +119,10 @@ class ActionExecutor:
         self._proxy = proxy
         self._skip_get_ = None
         self._init_done = False
+
+        # do these here to avoid having to do them for every call
+        self._func_sig = inspect.signature(func)
+        self._func_name = func.__name__
 
         # temporary cache for keys to avoid having to re-generate them on cache miss
         self._key_cache = None
@@ -144,7 +152,7 @@ class ActionExecutor:
         if self._skip_get_ is None:
             skip_get = {action.invocation.skip_get for action in self._actions}
             if len(skip_get) > 1:
-                raise SlycacheException("All actions agree on 'skip_get'")
+                raise SlycacheException("All actions must agree on 'skip_get'")
             self._skip_get_ = list(skip_get)[0]
         return self._skip_get_
 
@@ -168,13 +176,15 @@ class ActionExecutor:
             for key in self._get_action_keys(action, call_args):
                 result = action.proxy.get(key, default=NOTSET)
                 if result is not NOTSET:
-                    log.debug(
-                        "cache hit: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
-                    )
+                    if log.isEnabledFor(logging.DEBUG):
+                        log.debug(
+                            "cache hit: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func_name
+                        )
                     return result
-                log.debug(
-                    "cache miss: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
-                )
+                if log.isEnabledFor(logging.DEBUG):
+                    log.debug(
+                        "cache miss: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func_name
+                    )
         return NOTSET
 
     def _get_action_keys(self, action: CacheAction, call_args):
@@ -182,7 +192,7 @@ class ActionExecutor:
             return self._key_cache[action]
 
         keys = [
-            self._key_generator.generate(action.proxy.key_namespace, key, self._func, call_args)
+            self._key_generator.generate(action.proxy.key_namespace, key, self._func_name, self._func_sig, call_args)
             for key in action.invocation.keys
         ]
         if self._key_cache is not None:
