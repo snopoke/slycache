@@ -1,3 +1,4 @@
+import inspect
 import re
 import uuid
 from datetime import datetime, timedelta
@@ -102,5 +103,7 @@ def test_key_validation(template, message):
     ]
 )
 def test_key_formatting(template, call_args, expected):
-    key = StringFormatKeyGenerator().generate("ns", template, something_to_cache, call_args)
+    key = StringFormatKeyGenerator().generate(
+        "ns", template, something_to_cache.__name__, inspect.signature(something_to_cache), call_args
+    )
     assert key == expected
