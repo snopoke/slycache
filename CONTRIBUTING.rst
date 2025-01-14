@@ -64,10 +64,10 @@ Ready to contribute? Here's how to set up `slycache` for local development.
 
     $ git clone git@github.com:your_name_here/slycache.git
 
-#. Ensure `poetry is installed`_.
+#. Ensure `uv is installed`_.
 #. Install dependencies and start your virtualenv::
 
-    $ poetry install
+    $ uv sync --all-extras
 
 #. Create a branch for local development::
 
@@ -78,7 +78,7 @@ Ready to contribute? Here's how to set up `slycache` for local development.
 #. When you're done making changes, check that your changes pass the
    tests, including testing other Python versions, with tox::
 
-    $ tox
+    $ pytest
 
 #. Commit your changes and push your branch to GitHub::
 
@@ -88,7 +88,7 @@ Ready to contribute? Here's how to set up `slycache` for local development.
 
 #. Submit a pull request through the GitHub website.
 
-.. _poetry is installed: https://python-poetry.org/docs/
+.. _uv is installed: https://docs.astral.sh/uv/getting-started/installation/
 
 Pull Request Guidelines
 -----------------------
@@ -99,9 +99,7 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 3.7, 3.8, and 3.9. Check
-   https://travis-ci.com/snopoke/slycache/pull_requests
-   and make sure that the tests pass for all supported Python versions.
+3. The pull request should work for Python 3.11 and above.
 
 Tips
 ----
