@@ -1,6 +1,6 @@
 [project]
 name = "slycache"
-version = "0.3.0"
+version = "0.3.1"
 description = "Service caching API"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -60,10 +60,11 @@ docs = [
 [bumpver]
 current_version = "0.3.0"
 version_pattern = "MAJOR.MINOR.PATCH"
-commit = true
-tag = true
 
 [bumpver.file_patterns]
+"pyproject.toml" = [
+    '^version = "{version}"$',
+]
 "src/slycache/__init__.py" = [
     '^__version__ = "{version}"$',
 ]

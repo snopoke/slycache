@@ -116,7 +116,7 @@ A reminder for the maintainers on how to deploy. Make sure all your
 changes are committed (including an entry in HISTORY.rst). Then run:
 
 ``` shell
-$ bumpver update --patch --tag --commit
+$ bumpver update --patch
 $ uv lock --upgrade-package slycache
 $ git push
 $ git push --tags
