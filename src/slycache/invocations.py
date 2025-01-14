@@ -15,7 +15,7 @@ class CacheInvocation:
     cache actions. Each invocation type has a corresponding action type.
 
     See also:
-        :meth:slycache.cations.CacheAction
+        [CacheAction](slycache.cations.CacheAction)
     """
 
     keys: List[str]
@@ -43,7 +43,7 @@ class CacheResult(CacheInvocation):
     Data class used to contain the parameters for a ``cache_result`` operation.
 
     See also:
-        :meth:`slycache.cache_result`
+        [slycache.cache_result][slycache.Slycache.cache_result]
     """
 
     timeout: Union[int, NotSet] = NOTSET
@@ -62,7 +62,7 @@ class CachePut(CacheInvocation):
     Data class used to contain the parameters for a ``cache_put`` operation.
 
     See also:
-        :meth:`slycache.cache_put`
+        [slycache.cache_put][slycache.Slycache.cache_put]
     """
 
     cache_value: Optional[str] = None
@@ -84,7 +84,7 @@ class CacheRemove(CacheInvocation):
     Data class used to contain the parameters for a ``cache_remove`` operation.
 
     See also:
-        :meth:`slycache.cache_remove`
+        [slycache.cache_remove][slycache.Slycache.cache_remove]
     """
 
     @property

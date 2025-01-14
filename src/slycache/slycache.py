@@ -201,11 +201,11 @@ class Slycache:
         Example of caching the User object with a key generated from the
         ``str`` and ``bool`` parameters.
 
-        .. code::
-
-            @slycache.cache_result("{username}_{is_active}")
-            def get_user(username: str, is_active: bool) -> User:
-                ...
+        ```python
+        @slycache.cache_result("{username}_{is_active}")
+        def get_user(username: str, is_active: bool) -> User:
+            ...
+        ```
 
         Args:
             keys (str or List[str]): key template or list of key templates. These are converted
@@ -254,11 +254,11 @@ class Slycache:
 
         Example of caching the User object:
 
-        .. code::
-
-            @slycache.cache_put("{user.username}")
-            def save_user(user: User):
-                ...
+        ```python
+        @slycache.cache_put("{user.username}")
+        def save_user(user: User):
+            ...
+        ```
 
         Args:
             keys (str or List[str]): key template or list of key templates. These are converted
@@ -296,11 +296,11 @@ class Slycache:
 
         Example of removing the User object from the cache:
 
-        .. code::
-
-            @slycache.cache_remove(["{user.username}", "{user.id}"])
-            def delete_user(user: User):
-                ...
+        ```python
+        @slycache.cache_remove(["{user.username}", "{user.id}"])
+        def delete_user(user: User):
+            ...
+        ```
 
         Args:
             keys (str or List[str]): key template or list of key templates. These are converted
@@ -323,18 +323,18 @@ class Slycache:
         will be executed **in order**.
 
         The cache operations are executed after the invocation of the decorated function. Any exceptions
-        raised will will prevent all of the operations from being executed;
+        raised will prevent all the operations from being executed;
 
         Example of caching the User object in multiple caches:
 
-        .. code::
-
-            @slycache.caching(
-                CacheResult("{username}", cache_name="local_memory"),
-                CacheResult("{username}", cache_name="redis"),
-            )
-            def get_user(username: str):
-                ...
+        ```python
+        @slycache.caching(
+            CacheResult("{username}", cache_name="local_memory"),
+            CacheResult("{username}", cache_name="redis"),
+        )
+        def get_user(username: str):
+            ...
+        ```
 
         Args:
             *operations (
