@@ -46,3 +46,7 @@ plugins:
           show_signature_annotations: True
           separate_signature: True
           members_order: source
+          show_bases: False
+
+watch:
+- src
