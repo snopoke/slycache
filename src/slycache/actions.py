@@ -154,7 +154,7 @@ class ActionExecutor:
 
     def validate(self):
         """Validate actions and key templates"""
-        self._skip_get  # noqa, pylint: disable=pointless-statement
+        self._skip_get  # noqa
         for action in self._actions:
             for key in action.invocation.keys:
                 self._key_generator.validate(key, self._func)
