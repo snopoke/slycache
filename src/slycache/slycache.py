@@ -125,6 +125,16 @@ KeysType = Union[str, List[str]]
 
 
 class Slycache:
+    """Singleton cache controller class. You should never have to instantiate this class directly.
+    Interact with this class via the `slycache` instance:
+
+    ```python
+    import slycache
+
+    slycache.cache_result("{key}")(my_function)
+    ```
+    """
+
     def __init__(
         self, proxy: ProxyWithDefaults = None, key_generator: KeyGenerator = None
     ):
