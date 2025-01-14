@@ -44,6 +44,7 @@ log_level = "debug"
 
 [dependency-groups]
 dev = [
+    "bumpver>=2024.1130",
     "pre-commit>=4.0.1",
     "pytest>=8.3.4",
     "pytest-randomly>=3.16.0",
@@ -53,4 +54,14 @@ docs = [
     "mkdocs-material>=9.5.49",
     "mkdocstrings[python]>=0.27.0",
     "pymdown-extensions>=10.14",
+]
+
+
+[bumpver]
+current_version = "0.3.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+
+[bumpver.file_patterns]
+"src/slycache/__init__.py" = [
+    '^__version__ = "{version}"$',
 ]
