@@ -6,12 +6,10 @@
 
 [![Build status](https://github.com/snopoke/slycache/actions/workflows/ci.yml/badge.svg)](https://github.com/snopoke/slycache/actions/workflows/ci.yml)
 
-[![Documentation Status](https://readthedocs.org/projects/slycache/badge/?version=latest)](https://slycache.readthedocs.io/en/latest/?badge=latest)
-
 A caching API for python loosely modeled after the Java Caching API
 ([JSR107](https://docs.google.com/document/d/1YZ-lrH6nW871Vd9Z34Og_EqbX_kxxJi55UrSn4yL2Ak/edit)).
 
--   Documentation: <https://slycache.readthedocs.io>.
+-   Documentation: <https://snopoke.github.io/slycache/>.
 
 
 ## Basic Usage
@@ -54,4 +52,4 @@ def delete_user(user):
 ```
 
 For more advanced usage see the documentation:
-<https://slycache.readthedocs.io>
+<https://snopoke.github.io/slycache/>

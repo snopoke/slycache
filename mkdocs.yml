@@ -21,7 +21,7 @@ theme:
     - toc.integrate
 
 nav:
-    - Home: home.md
+    - Home: index.md
     - API: api.md
     - Changelog: changelog.md
     - License: license.md
