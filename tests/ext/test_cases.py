@@ -1,3 +1,5 @@
+# Tests for the service under test, using the slycache extension
+# These tests are imported by the Flask and Django tests module
 import pytest
 
 from slycache import caches
@@ -7,7 +9,7 @@ from slycache import caches
 def service(request):
     service = getattr(request.module, "service_under_test", None)
     if service is None:
-        pytest.skip('no service defined, skipping module: {}'.format(request.module))
+        pytest.skip("no service defined, skipping module: {}".format(request.module))
     return service
 
 

@@ -11,7 +11,6 @@ def register_cache(cache, name="default"):
 
 
 class FlaskCacheAdapter(CacheInterface):
-
     def __init__(self, delegate: BaseCache):  # pylint: disable=super-init-not-called
         self._delegate = delegate
 

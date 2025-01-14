@@ -1,1 +1,1 @@
-default_app_config = 'slycache.ext.django.app.SlycacheConfig'
+default_app_config = "slycache.ext.django.app.SlycacheConfig"

@@ -1,4 +1,5 @@
 """Tests on a 'realistic' service class"""
+
 import uuid
 from dataclasses import dataclass
 from typing import Dict, Tuple
@@ -10,7 +11,6 @@ from slycache.slycache import Slycache
 
 
 def test_service_save_with_cache_value_param(default_cache):  # pylint: disable=unused-argument
-
     service = make_service(slycache)()
     user, data = _get_user_data()
     service.save_with_cache_value_param(user)
@@ -130,7 +130,6 @@ def make_service(cache: Slycache):
     service_cache = cache.with_defaults(namespace="service")
 
     class Service:
-
         def __init__(self, data: Dict[str, User] = None):
             self.data = data or {}
 

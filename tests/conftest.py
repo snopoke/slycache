@@ -38,5 +38,7 @@ def clean_caches():
 @pytest.fixture
 def clean_slate(clean_caches):
     default = Slycache()
-    assert default._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, NOTSET, NOTSET, False)  # pylint: disable=protected-access
+    assert default._proxy == ProxyWithDefaults(
+        DEFAULT_CACHE_NAME, NOTSET, NOTSET, False
+    )  # pylint: disable=protected-access
     return default

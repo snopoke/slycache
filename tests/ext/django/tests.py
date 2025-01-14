@@ -1,17 +1,21 @@
 import os
 
+import pytest
+
+from slycache import caches
 from slycache.ext.django.apps import DjangoCacheAdapter
 from tests.ext.services import UserServiceMultiple
+
 # import test cases
-from ..test_cases import *
+from ..test_cases import service, test_get, test_delete, test_get_from_other  # noqa: F401
 
 django = pytest.importorskip("django")
 
 
 @pytest.fixture(scope="module", autouse=True)
 def with_django():
-    if 'DJANGO_SETTINGS_MODULE' not in os.environ:
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', "tests.ext.django.settings")
+    if "DJANGO_SETTINGS_MODULE" not in os.environ:
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.ext.django.settings")
 
     django.setup()
 
@@ -24,6 +28,7 @@ def with_django():
 @pytest.fixture(autouse=True)
 def clear_caches():
     from django.core.cache import caches as django_caches  # pylint: disable=import-outside-toplevel
+
     for cache in django_caches.all():
         cache.clear()
 
