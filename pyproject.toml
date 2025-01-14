@@ -44,6 +44,8 @@ log_level = "debug"
 
 [dependency-groups]
 dev = [
+    "pre-commit>=4.0.1",
     "pytest>=8.3.4",
+    "pytest-randomly>=3.16.0",
     "ruff>=0.9.1",
 ]
