@@ -2,6 +2,7 @@ name: Publish to PyPI
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,5 +16,7 @@ jobs:
       uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: uv sync --all-extras --all-groups
+    - name: Build
+      run: uv build
     - name: Publish
       run: uv publish --token "${{ secrets.PYPI_TOKEN }}"
