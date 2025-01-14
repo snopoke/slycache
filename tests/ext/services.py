@@ -5,7 +5,6 @@ user_cache = slycache.with_defaults(namespace="user")
 
 
 class UserServiceSingle:
-
     @staticmethod
     @user_cache.cache_result("{username}")
     def get(username):
@@ -18,7 +17,6 @@ class UserServiceSingle:
 
 
 class UserServiceMultiple:
-
     @staticmethod
     @user_cache.cache_result("{username}")
     def get(username):
@@ -30,6 +28,8 @@ class UserServiceMultiple:
         return username
 
     @staticmethod
-    @user_cache.caching(CacheRemove(["{username}"]), CacheRemove(["{username}"], cache_name="other"))
+    @user_cache.caching(
+        CacheRemove(["{username}"]), CacheRemove(["{username}"], cache_name="other")
+    )
     def delete(username):
         pass

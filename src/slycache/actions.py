@@ -1,14 +1,12 @@
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional,
-                    TypeVar, Union)
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, TypeVar, Union
 
 from .const import NOTSET, NotSet
 from .exceptions import SlycacheException
 from .invocations import CacheInvocation
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from .slycache import ProxyWithDefaults
 
 log = logging.getLogger("slycache")
@@ -58,16 +56,25 @@ class CacheResultAction(CacheAction):
         value = self._get_value(call_args, result)
         if value is None:
             log.debug(
-                "ignoring None value, cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__,
-                cache_key
+                "ignoring None value, cache=%s, function=%s, key=%s",
+                self.proxy.cache_name,
+                func.__name__,
+                cache_key,
             )
             return
 
         self.proxy.set(cache_key, value)
-        log.debug("cache_set: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
+        log.debug(
+            "cache_set: cache=%s, function=%s, key=%s",
+            self.proxy.cache_name,
+            func.__name__,
+            cache_key,
+        )
 
-    def _get_value(  # pylint: disable=no-self-use
-        self, call_args: Dict, result: Any  # pylint: disable=unused-argument
+    def _get_value(
+        self,
+        call_args: Dict,
+        result: Any,
     ) -> Any:
         return result
 
@@ -75,9 +82,9 @@ class CacheResultAction(CacheAction):
 class CachePutAction(CacheResultAction):
     """Action for ``CachePut``
 
-        See also:
-            :meth:`slycache.cache_put`
-        """
+    See also:
+        :meth:`slycache.cache_put`
+    """
 
     def _get_value(self, call_args: Dict, result: Any) -> Any:
         if self.invocation.cache_value is not None:
@@ -88,18 +95,25 @@ class CachePutAction(CacheResultAction):
             return call_args[args[0]]
         if len(args) == 2 and args[0] == "self":
             return call_args[args[1]]
-        raise SlycacheException("'cache_value' must be provided for functions with multiple arguments")
+        raise SlycacheException(
+            "'cache_value' must be provided for functions with multiple arguments"
+        )
 
 
 class CacheRemoveAction(CacheAction):
     """Action for ``CacheRemove``
 
-        See also:
-            :meth:`slycache.cache_remove`
-        """
+    See also:
+        :meth:`slycache.cache_remove`
+    """
 
     def call(self, cache_key: str, func: Callable, call_args: Dict, result: Any):
-        log.debug("cache_remove: cache=%s, function=%s, key=%s", self.proxy.cache_name, func.__name__, cache_key)
+        log.debug(
+            "cache_remove: cache=%s, function=%s, key=%s",
+            self.proxy.cache_name,
+            func.__name__,
+            cache_key,
+        )
         self.proxy.delete(cache_key)
 
 
@@ -108,7 +122,13 @@ class ActionExecutor:
     and call arguments they have been decorated on.
     """
 
-    def __init__(self, func: Callable, actions: List[CacheAction], key_generator, proxy: "ProxyWithDefaults"):
+    def __init__(
+        self,
+        func: Callable,
+        actions: List[CacheAction],
+        key_generator,
+        proxy: "ProxyWithDefaults",
+    ):
         self._func = func
         self._actions = actions
         self._key_generator = key_generator
@@ -169,11 +189,17 @@ class ActionExecutor:
                 result = action.proxy.get(key, default=NOTSET)
                 if result is not NOTSET:
                     log.debug(
-                        "cache hit: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
+                        "cache hit: cache=%s key=%s function=%s",
+                        action.proxy.cache_name,
+                        key,
+                        self._func.__name__,
                     )
                     return result
                 log.debug(
-                    "cache miss: cache=%s key=%s function=%s", action.proxy.cache_name, key, self._func.__name__
+                    "cache miss: cache=%s key=%s function=%s",
+                    action.proxy.cache_name,
+                    key,
+                    self._func.__name__,
                 )
         return NOTSET
 
@@ -182,7 +208,9 @@ class ActionExecutor:
             return self._key_cache[action]
 
         keys = [
-            self._key_generator.generate(action.proxy.key_namespace, key, self._func, call_args)
+            self._key_generator.generate(
+                action.proxy.key_namespace, key, self._func, call_args
+            )
             for key in action.invocation.keys
         ]
         if self._key_cache is not None:

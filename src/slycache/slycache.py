@@ -1,16 +1,22 @@
 """Main module"""
+
 import inspect
 import logging
 from dataclasses import dataclass, replace
 from functools import wraps
 from typing import Any, Callable, List, Optional, Union
 
-from .actions import (ActionExecutor, CacheAction, CachePutAction,
-                      CacheRemoveAction, CacheResultAction)
+from .actions import (
+    ActionExecutor,
+    CacheAction,
+    CachePutAction,
+    CacheRemoveAction,
+    CacheResultAction,
+)
 from .const import DEFAULT_CACHE_NAME, NOTSET, NotSet
 from .exceptions import InvalidCacheError, SlycacheException
 from .interface import CacheInterface, KeyGenerator
-from .invocations import CachePut, CacheRemove, CacheResult, CacheInvocation
+from .invocations import CachePut, CacheRemove, CacheResult
 from .key_generator import StringFormatKeyGenerator
 
 log = logging.getLogger("slycache")
@@ -22,6 +28,7 @@ class ProxyWithDefaults:
     This class keeps a reference to the cache provider
     via the cache name.
     """
+
     cache_name: str
     timeout: Union[int, NotSet] = NOTSET
     namespace: Union[str, NotSet] = NOTSET
@@ -70,7 +77,7 @@ class CacheHolder:
         name: str,
         backend: CacheInterface,
         default_timeout: int = None,
-        default_namespace: Union[str, NotSet] = NOTSET
+        default_namespace: Union[str, NotSet] = NOTSET,
     ):
         if name in self._caches:
             raise InvalidCacheError(f"Cache '{name}' is already registered")
@@ -81,7 +88,7 @@ class CacheHolder:
         name: str,
         backend: CacheInterface,
         default_timeout: int = None,
-        default_namespace: Union[str, NotSet] = NOTSET
+        default_namespace: Union[str, NotSet] = NOTSET,
     ):
         self._caches[name] = backend
         self._proxies[name] = ProxyWithDefaults(
@@ -118,8 +125,9 @@ KeysType = Union[str, List[str]]
 
 
 class Slycache:
-
-    def __init__(self, proxy: ProxyWithDefaults = None, key_generator: KeyGenerator = None):
+    def __init__(
+        self, proxy: ProxyWithDefaults = None, key_generator: KeyGenerator = None
+    ):
         self._proxy = proxy or ProxyWithDefaults(DEFAULT_CACHE_NAME)
         self._key_generator = key_generator or StringFormatKeyGenerator()
 
@@ -128,7 +136,7 @@ class Slycache:
         name: str,
         backend: CacheInterface,
         default_timeout: Optional[int] = None,
-        default_namespace: Optional[Union[str, NotSet]] = NOTSET
+        default_namespace: Optional[Union[str, NotSet]] = NOTSET,
     ):
         """Register a cache backend.
 
@@ -168,7 +176,7 @@ class Slycache:
         cache_name: Optional[str] = None,
         timeout: Union[int, NotSet] = NOTSET,
         namespace: Union[str, NotSet] = NOTSET,
-        skip_get: bool = False
+        skip_get: bool = False,
     ):
         """
         This is a function level decorator function used to mark methods whose returned value is cached,
@@ -226,7 +234,7 @@ class Slycache:
         cache_value: Optional[str] = None,
         cache_name: Optional[str] = None,
         timeout: Union[int, NotSet] = NOTSET,
-        namespace: Union[str, NotSet] = NOTSET
+        namespace: Union[str, NotSet] = NOTSET,
     ):
         """
         This is a function level decorator used to mark function where one of the function arguments
@@ -337,17 +345,18 @@ class Slycache:
         type_mapping = {
             CacheResult: CacheResultAction,
             CachePut: CachePutAction,
-            CacheRemove: CacheRemoveAction
+            CacheRemove: CacheRemoveAction,
         }
-        return self._call([
-            type_mapping[action.__class__](action) for action in operations
-        ])
+        return self._call(
+            [type_mapping[action.__class__](action) for action in operations]
+        )
 
     def _call(self, actions: List[CacheAction]) -> Callable:
-
         def _decorator(func):
             if not callable(func):
-                raise SlycacheException(f"Decorator must be used on a function: {func!r}")
+                raise SlycacheException(
+                    f"Decorator must be used on a function: {func!r}"
+                )
 
             action = ActionExecutor(func, actions, self._key_generator, self._proxy)
             action.validate()

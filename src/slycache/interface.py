@@ -59,7 +59,9 @@ class KeyGenerator(Protocol):
         """
         raise NotImplementedError
 
-    def generate(self, namespace: Optional[str], template: str, func: Callable, call_args: Dict) -> str:
+    def generate(
+        self, namespace: Optional[str], template: str, func: Callable, call_args: Dict
+    ) -> str:
         """Generate a key for use in a cache operation.
 
         Arguments:

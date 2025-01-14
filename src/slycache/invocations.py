@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from slycache.const import NOTSET, NotSet
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from .slycache import ProxyWithDefaults
 
 
@@ -18,6 +17,7 @@ class CacheInvocation:
     See also:
         :meth:slycache.cations.CacheAction
     """
+
     keys: List[str]
     cache_name: Optional[str] = None
     namespace: Union[int, NotSet] = NOTSET
@@ -45,6 +45,7 @@ class CacheResult(CacheInvocation):
     See also:
         :meth:`slycache.cache_result`
     """
+
     timeout: Union[int, NotSet] = NOTSET
     skip_get: bool = False
 
@@ -63,6 +64,7 @@ class CachePut(CacheInvocation):
     See also:
         :meth:`slycache.cache_put`
     """
+
     cache_value: Optional[str] = None
     timeout: Union[int, NotSet] = NOTSET
 

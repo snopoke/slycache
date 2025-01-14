@@ -7,21 +7,21 @@ from slycache import CacheInterface, slycache
 
 
 class SlycacheConfig(AppConfig):
-    name = 'slycache'
-    verbose_name = 'Slycache'
+    name = "slycache"
+    verbose_name = "Slycache"
 
     def ready(self):
-        from django.conf import settings  # pylint: disable=import-outside-toplevel
-        from django.core.cache import caches  # pylint: disable=import-outside-toplevel
+        from django.conf import settings
+        from django.core.cache import caches
 
         for name in settings.CACHES:
             cache = caches[name]
+            print("Registering cache", name)
             slycache.register_backend(name, DjangoCacheAdapter(cache))
 
 
 class DjangoCacheAdapter(CacheInterface):
-
-    def __init__(self, delegate: BaseCache):  # pylint: disable=super-init-not-called
+    def __init__(self, delegate: BaseCache):
         self._delegate = delegate
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:

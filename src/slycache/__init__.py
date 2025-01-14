@@ -1,5 +1,5 @@
 __author__ = """snopoke"""
-__version__ = '0.3.0'
+__version__ = "0.3.1"
 
 from .exceptions import InvalidCacheError, SlycacheException
 from .interface import CacheInterface, KeyGenerator

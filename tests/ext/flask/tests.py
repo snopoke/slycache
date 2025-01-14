@@ -1,8 +1,11 @@
+import pytest
+
+from slycache import caches
 from slycache.ext.flask import FlaskCacheAdapter, register_cache
 from tests.ext.services import UserServiceSingle
 
 # import test cases
-from ..test_cases import *
+from ..test_cases import service, test_get, test_delete, test_get_from_other  # noqa: F401
 
 flask = pytest.importorskip("flask")
 flask_caching = pytest.importorskip("flask_caching")
@@ -21,7 +24,7 @@ def flask_cache():
 
 
 @pytest.fixture(autouse=True)
-def clear_caches(flask_cache):  # pylint: disable=redefined-outer-name
+def clear_caches(flask_cache):
     flask_cache.clear()
 
 

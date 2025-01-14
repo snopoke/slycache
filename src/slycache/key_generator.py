@@ -9,8 +9,6 @@ from inspect import Parameter
 from numbers import Number
 from string import Formatter
 
-from pytz import utc
-
 from slycache.exceptions import KeyFormatException, NamespaceException
 
 MUTABLE_TYPES = (list, dict, set, bytearray)
@@ -20,7 +18,7 @@ try:
 except ImportError:
 
     def formatter_field_name_split(field_name):
-        return field_name._formatter_field_name_split()  # pylint: disable=protected-access
+        return field_name._formatter_field_name_split()
 
 
 class StringFormatKeyGenerator:
@@ -32,7 +30,7 @@ class StringFormatKeyGenerator:
         self.max_key_length = max_key_length
         self.max_namespace_length = max_namespace_length
 
-    def validate(self, template, func):  # pylint: disable=unused-argument
+    def validate(self, template, func):
         if template is None:
             return
 
@@ -51,18 +49,28 @@ class StringFormatKeyGenerator:
 
             if field_name is not None:
                 if not field_name:
-                    raise KeyFormatException(f"Blank field in key: function='{template}'")
+                    raise KeyFormatException(
+                        f"Blank field in key: function='{template}'"
+                    )
 
                 if field_name.isdigit():
-                    raise KeyFormatException("Field numbering not supported. Use field names.")
+                    raise KeyFormatException(
+                        "Field numbering not supported. Use field names."
+                    )
 
                 first, _ = formatter_field_name_split(field_name)
                 if first not in args:
-                    raise KeyFormatException(f"Argument '{first}' is not present in function: '{sig_str}'")
+                    raise KeyFormatException(
+                        f"Argument '{first}' is not present in function: '{sig_str}'"
+                    )
 
                 param = sig.parameters[first]
                 default = param.default
-                if default is not None and default is not Parameter.empty and isinstance(default, MUTABLE_TYPES):
+                if (
+                    default is not None
+                    and default is not Parameter.empty
+                    and isinstance(default, MUTABLE_TYPES)
+                ):
                     raise KeyFormatException(
                         f"Mutable argument type not permitted for caching: '{first}={default}'. Function='{sig_str}'"
                     )
@@ -74,7 +82,9 @@ class StringFormatKeyGenerator:
             namespace = generate_namespace(func, args, self.max_namespace_length)
         elif not namespace:
             raise NamespaceException("Namespace must not be empty")
-        return generate_key(namespace, key_template, valid_args, max_len=self.max_key_length)
+        return generate_key(
+            namespace, key_template, valid_args, max_len=self.max_key_length
+        )
 
 
 def get_arg_names(func=None, sig=None):
@@ -104,23 +114,26 @@ def generate_namespace(func, named_args: list, max_len=60) -> str:
     full_namespace = f"{func.__name__}:{args}"
     if len(full_namespace) <= max_len:
         return full_namespace
-    return full_namespace[:max_len - 8] + _hash(full_namespace, 8)
+    return full_namespace[: max_len - 8] + _hash(full_namespace, 8)
 
 
 def _hash(value, length=8):
-    return hashlib.md5(value.encode('utf-8')).hexdigest()[-length:]
+    return hashlib.md5(value.encode("utf-8")).hexdigest()[-length:]
 
 
 def generate_key(namespace, key_template, call_args, max_len=250):
     key = StringFormatter().format(key_template, **call_args)
     if len(key) + len(namespace) > int(max_len):
-        key = base64.urlsafe_b64encode(hashlib.sha1(key.encode("utf8")).digest()).decode().rstrip("=")
+        key = (
+            base64.urlsafe_b64encode(hashlib.sha1(key.encode("utf8")).digest())
+            .decode()
+            .rstrip("=")
+        )
     return key if namespace is None else f"{namespace}:{key}"
 
 
 class StringFormatter(Formatter):
-    """Custom formatter to provide more sensible default format for datetimes.
-    """
+    """Custom formatter to provide more sensible default format for datetimes."""
 
     def format_field(self, value, format_spec):
         if not format_spec:
@@ -145,7 +158,6 @@ def hash_data(data):
 
 
 class SlycacheJSONEncoder(json.JSONEncoder):
-
     def default(self, o):
         r = handle_basic_types(o)
         if r is not None:
@@ -160,10 +172,8 @@ class SlycacheJSONEncoder(json.JSONEncoder):
             raise ValueError(f"Objects of type '{type(o)}' can not be used in keys")
 
 
-def handle_basic_types(o):  # pylint: disable=too-many-return-statements
+def handle_basic_types(o):
     if isinstance(o, datetime.datetime):
-        if o.utcoffset() is not None:
-            return o.astimezone(utc).isoformat()
         return o.isoformat()
     if isinstance(o, datetime.date):
         return o.isoformat()

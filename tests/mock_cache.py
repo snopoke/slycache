@@ -1,4 +1,5 @@
 """In memory cache backed by a dictionary. Only used for testing. Not thread safe."""
+
 from datetime import datetime, timedelta
 from typing import Any, NamedTuple, Optional
 
@@ -15,7 +16,6 @@ class Entry(NamedTuple):
 
 
 class DictCache:
-
     def __init__(self, alias: str):
         self._alias = alias
         self._cache = {}
@@ -32,7 +32,12 @@ class DictCache:
         return None if entry.expired else entry.value
 
     def set(self, key: str, value: Any, timeout: int = None):
-        entry = Entry(key, value, timeout, timeout and datetime.utcnow() + timedelta(seconds=timeout))
+        entry = Entry(
+            key,
+            value,
+            timeout,
+            timeout and datetime.utcnow() + timedelta(seconds=timeout),
+        )
         self._cache[key] = entry
 
     def delete(self, key: str):
