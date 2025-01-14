@@ -1,23 +1,22 @@
 import re
 import uuid
-from datetime import datetime, timedelta
+import zoneinfo
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_UP
 
 import pytest
-import pytz
-from testil import assert_raises
 
 from slycache.exceptions import KeyFormatException
 from slycache.key_generator import StringFormatKeyGenerator, StringFormatter
 
-now = datetime.utcnow()
-now_utc = now.replace(tzinfo=pytz.utc)
-now_za = now_utc.astimezone(pytz.timezone("Africa/Johannesburg"))
+now = datetime.now()
+now_utc = datetime.now(timezone.utc)
+now_za = datetime.now(zoneinfo.ZoneInfo("Africa/Johannesburg"))
 
 uuid_ = uuid.uuid4()
 
 fixed_now = datetime.strptime("2021-03-05T22:09:00", "%Y-%m-%dT%H:%M:%S")
-fixed_za = fixed_now.replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Africa/Johannesburg"))
+fixed_za = fixed_now.replace(tzinfo=timezone.utc).astimezone(zoneinfo.ZoneInfo("Africa/Johannesburg"))
 
 
 @pytest.mark.parametrize(
@@ -26,8 +25,7 @@ fixed_za = fixed_now.replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Africa/J
         ("{arg}", 1, "1"),
         ("{arg}", now, now.isoformat()),
         ("{arg}", now_utc, now_utc.isoformat()),
-        ("{arg}", now_za, now_utc.isoformat()),
-        ("{arg}", now_za, now_utc.isoformat()),
+        ("{arg}", now_za, now_za.isoformat()),
         ("{arg:%Y-%m-%d}", now, now.strftime("%Y-%m-%d")),
         ("{arg!s}", now, str(now)),
         ("{arg}", timedelta(days=1), "86400.0"),
@@ -52,7 +50,7 @@ fixed_za = fixed_now.replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Africa/J
                 "float root 2": 1.41421,
                 "None": None,
                 "timedelta": timedelta.max
-            }, "FH6LoXCXF_CWnVnntvy7XWV142E"
+            }, "AvjIknkpKV7J435onEjxyrjjTII"
         ),
     ]
 )
@@ -62,7 +60,7 @@ def test_string_formatter(template, arg, result):
 
 @pytest.mark.parametrize("arg", [object(), StringFormatter()])
 def test_string_errors(arg):
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         assert StringFormatter().format("{arg}", arg=arg)
 
 
@@ -83,7 +81,7 @@ def something_to_cache(arg1, arg2=None, *args, kw_arg, kw_arg2=[], **kwargs):  #
 )
 def test_key_validation(template, message):
     if message is not None:
-        with assert_raises(KeyFormatException, msg=re.compile(message)):
+        with pytest.raises(KeyFormatException, match=message):
             StringFormatKeyGenerator().validate(template, something_to_cache)
     else:
         StringFormatKeyGenerator().validate(template, something_to_cache)

@@ -9,8 +9,6 @@ from inspect import Parameter
 from numbers import Number
 from string import Formatter
 
-from pytz import utc
-
 from slycache.exceptions import KeyFormatException, NamespaceException
 
 MUTABLE_TYPES = (list, dict, set, bytearray)
@@ -162,8 +160,6 @@ class SlycacheJSONEncoder(json.JSONEncoder):
 
 def handle_basic_types(o):  # pylint: disable=too-many-return-statements
     if isinstance(o, datetime.datetime):
-        if o.utcoffset() is not None:
-            return o.astimezone(utc).isoformat()
         return o.isoformat()
     if isinstance(o, datetime.date):
         return o.isoformat()

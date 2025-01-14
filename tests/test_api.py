@@ -1,7 +1,6 @@
 import uuid
 
 import pytest
-from testil import assert_raises
 
 from slycache import CachePut, CacheResult, SlycacheException
 from slycache.const import DEFAULT_CACHE_NAME, NOTSET
@@ -21,7 +20,7 @@ def test_lazyiness(clean_slate):
 
 
 def test_decorate_non_callable():
-    with assert_raises(SlycacheException):
+    with pytest.raises(SlycacheException):
         slycache.cache_result("")("string")
 
 

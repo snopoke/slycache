@@ -16,6 +16,7 @@ class SlycacheConfig(AppConfig):
 
         for name in settings.CACHES:
             cache = caches[name]
+            print("Registering cache", name)
             slycache.register_backend(name, DjangoCacheAdapter(cache))
 
 

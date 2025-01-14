@@ -1,8 +1,7 @@
 import os
 
-from slycache.ext.django.app import DjangoCacheAdapter
+from slycache.ext.django.apps import DjangoCacheAdapter
 from tests.ext.services import UserServiceMultiple
-
 # import test cases
 from ..test_cases import *
 
