@@ -193,7 +193,7 @@ class Slycache:
         ``None`` return values are not cached
 
         The cache operation takes place after the invocation of the decorated function. Any exceptions
-        raised will will prevent operation from being executed;
+        raised will prevent operation from being executed;
 
         To always invoke the annotated method and still cache the result set
         ``skip_get`` to ``True``. This will disable the pre-invocation cache check.
