@@ -27,7 +27,7 @@ def clean_caches():
     for name in caches.registered_names():
         caches.deregister(name)
 
-    assert caches._caches == {}  # pylint: disable=protected-access
+    assert caches._caches == {}
 
     yield caches
 
@@ -40,5 +40,5 @@ def clean_slate(clean_caches):
     default = Slycache()
     assert default._proxy == ProxyWithDefaults(
         DEFAULT_CACHE_NAME, NOTSET, NOTSET, False
-    )  # pylint: disable=protected-access
+    )
     return default

@@ -7,7 +7,6 @@ from .exceptions import SlycacheException
 from .invocations import CacheInvocation
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from .slycache import ProxyWithDefaults
 
 log = logging.getLogger("slycache")
@@ -72,10 +71,10 @@ class CacheResultAction(CacheAction):
             cache_key,
         )
 
-    def _get_value(  # pylint: disable=no-self-use
+    def _get_value(
         self,
         call_args: Dict,
-        result: Any,  # pylint: disable=unused-argument
+        result: Any,
     ) -> Any:
         return result
 

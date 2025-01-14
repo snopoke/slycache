@@ -68,7 +68,7 @@ def test_string_errors(arg):
         assert StringFormatter().format("{arg}", arg=arg)
 
 
-def something_to_cache(arg1, arg2=None, *args, kw_arg, kw_arg2=[], **kwargs):  # pylint: disable=all
+def something_to_cache(arg1, arg2=None, *args, kw_arg, kw_arg2=[], **kwargs):
     pass
 
 

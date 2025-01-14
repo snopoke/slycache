@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from slycache.const import NOTSET, NotSet
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from .slycache import ProxyWithDefaults
 
 

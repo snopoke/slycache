@@ -8,7 +8,7 @@ from slycache.key_generator import StringFormatKeyGenerator
 from slycache.slycache import ProxyWithDefaults, caches, slycache
 
 
-def result_func(arg):  # pylint: disable=unused-argument
+def result_func(arg):
     return getattr(result_func, "return_value")
 
 
@@ -34,7 +34,7 @@ def test_decorate_non_callable():
         (Ellipsis, 5, Ellipsis),
         (Ellipsis, Ellipsis, "all_your_base"),
     ],
-)  # pylint: disable=too-many-locals
+)
 def test_cache_result_with_defaults(
     default_cache, other_cache, cache, timeout, namespace
 ):
@@ -50,7 +50,7 @@ def test_cache_result_with_defaults(
         (Ellipsis, 5, Ellipsis),
         (Ellipsis, Ellipsis, "ns1"),
     ],
-)  # pylint: disable=too-many-locals
+)
 def test_cache_result_overwrite_defaults(
     default_cache, other_cache, cache, timeout, namespace
 ):
@@ -103,27 +103,25 @@ def _test_cache(
 
 def test_with_defaults_namespace(clean_slate):
     namespace = clean_slate.with_defaults(namespace="v1_")
-    assert namespace._proxy == ProxyWithDefaults(  # pylint: disable=protected-access
+    assert namespace._proxy == ProxyWithDefaults(
         DEFAULT_CACHE_NAME, NOTSET, "v1_", False
     )
 
 
 def test_with_defaults_name(clean_slate):
     other = clean_slate.with_defaults(cache_name="other")
-    assert other._proxy == ProxyWithDefaults("other", NOTSET, NOTSET, False)  # pylint: disable=protected-access
+    assert other._proxy == ProxyWithDefaults("other", NOTSET, NOTSET, False)
 
 
 def test_with_defaults_timeout(clean_slate):
     timeout = clean_slate.with_defaults(timeout=10)
-    assert timeout._proxy == ProxyWithDefaults(  # pylint: disable=protected-access
-        DEFAULT_CACHE_NAME, 10, NOTSET, False
-    )
+    assert timeout._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, 10, NOTSET, False)
 
 
 def test_with_defaults_key_generator(clean_slate):
     new_key_generator = lambda x: x  # noqa
     fourth = clean_slate.with_defaults(key_generator=new_key_generator)
-    assert fourth._key_generator == new_key_generator  # pylint: disable=protected-access
+    assert fourth._key_generator == new_key_generator
 
 
 def test_with_defaults_carry_forward(clean_slate):
@@ -131,15 +129,15 @@ def test_with_defaults_carry_forward(clean_slate):
     other = clean_slate.with_defaults(
         cache_name="other", timeout=2, namespace="v1_", key_generator=key_generator
     )
-    assert other._proxy == ProxyWithDefaults("other", 2, "v1_", False)  # pylint: disable=protected-access
-    assert other._key_generator == key_generator  # pylint: disable=protected-access
+    assert other._proxy == ProxyWithDefaults("other", 2, "v1_", False)
+    assert other._key_generator == key_generator
 
     new_key_generator = lambda x: x + "1"  # noqa
     other1 = other.with_defaults(
         timeout=10, namespace="v2_", key_generator=new_key_generator
     )
-    assert other1._proxy == ProxyWithDefaults("other", 10, "v2_", False)  # pylint: disable=protected-access
-    assert other1._key_generator == new_key_generator  # pylint: disable=protected-access
+    assert other1._proxy == ProxyWithDefaults("other", 10, "v2_", False)
+    assert other1._key_generator == new_key_generator
 
     new_key_generator = lambda x: x + "2"  # noqa
     default1 = other.with_defaults(
@@ -148,10 +146,8 @@ def test_with_defaults_carry_forward(clean_slate):
         namespace="v3_",
         key_generator=new_key_generator,
     )
-    assert default1._proxy == ProxyWithDefaults(  # pylint: disable=protected-access
-        DEFAULT_CACHE_NAME, 5, "v3_", False
-    )
-    assert default1._key_generator == new_key_generator  # pylint: disable=protected-access
+    assert default1._proxy == ProxyWithDefaults(DEFAULT_CACHE_NAME, 5, "v3_", False)
+    assert default1._key_generator == new_key_generator
 
 
 def test_clear_cache(default_cache):

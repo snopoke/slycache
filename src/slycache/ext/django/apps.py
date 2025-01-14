@@ -11,8 +11,8 @@ class SlycacheConfig(AppConfig):
     verbose_name = "Slycache"
 
     def ready(self):
-        from django.conf import settings  # pylint: disable=import-outside-toplevel
-        from django.core.cache import caches  # pylint: disable=import-outside-toplevel
+        from django.conf import settings
+        from django.core.cache import caches
 
         for name in settings.CACHES:
             cache = caches[name]
@@ -21,7 +21,7 @@ class SlycacheConfig(AppConfig):
 
 
 class DjangoCacheAdapter(CacheInterface):
-    def __init__(self, delegate: BaseCache):  # pylint: disable=super-init-not-called
+    def __init__(self, delegate: BaseCache):
         self._delegate = delegate
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:

@@ -10,21 +10,21 @@ from slycache import CachePut, CacheRemove, CacheResult, slycache
 from slycache.slycache import Slycache
 
 
-def test_service_save_with_cache_value_param(default_cache):  # pylint: disable=unused-argument
+def test_service_save_with_cache_value_param(default_cache):
     service = make_service(slycache)()
     user, data = _get_user_data()
     service.save_with_cache_value_param(user)
     assert service.data == data
 
 
-def test_service_save_no_cache_value_param(default_cache):  # pylint: disable=unused-argument
+def test_service_save_no_cache_value_param(default_cache):
     service = make_service(slycache)()
     user, data = _get_user_data()
     service.save_no_cache_value_param(user)
     assert service.data == data
 
 
-def test_service_get_user_by_id_hit(default_cache):  # pylint: disable=unused-argument
+def test_service_get_user_by_id_hit(default_cache):
     user, _ = _get_user_data()
     service = make_service(slycache)()
 

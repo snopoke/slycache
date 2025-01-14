@@ -18,7 +18,7 @@ try:
 except ImportError:
 
     def formatter_field_name_split(field_name):
-        return field_name._formatter_field_name_split()  # pylint: disable=protected-access
+        return field_name._formatter_field_name_split()
 
 
 class StringFormatKeyGenerator:
@@ -30,7 +30,7 @@ class StringFormatKeyGenerator:
         self.max_key_length = max_key_length
         self.max_namespace_length = max_namespace_length
 
-    def validate(self, template, func):  # pylint: disable=unused-argument
+    def validate(self, template, func):
         if template is None:
             return
 
@@ -172,7 +172,7 @@ class SlycacheJSONEncoder(json.JSONEncoder):
             raise ValueError(f"Objects of type '{type(o)}' can not be used in keys")
 
 
-def handle_basic_types(o):  # pylint: disable=too-many-return-statements
+def handle_basic_types(o):
     if isinstance(o, datetime.datetime):
         return o.isoformat()
     if isinstance(o, datetime.date):

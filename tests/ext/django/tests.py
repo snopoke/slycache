@@ -27,7 +27,7 @@ def with_django():
 
 @pytest.fixture(autouse=True)
 def clear_caches():
-    from django.core.cache import caches as django_caches  # pylint: disable=import-outside-toplevel
+    from django.core.cache import caches as django_caches
 
     for cache in django_caches.all():
         cache.clear()

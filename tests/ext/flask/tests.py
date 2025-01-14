@@ -24,7 +24,7 @@ def flask_cache():
 
 
 @pytest.fixture(autouse=True)
-def clear_caches(flask_cache):  # pylint: disable=redefined-outer-name
+def clear_caches(flask_cache):
     flask_cache.clear()
 
 
