@@ -60,6 +60,8 @@ docs = [
 [bumpver]
 current_version = "0.3.0"
 version_pattern = "MAJOR.MINOR.PATCH"
+commit = true
+tag = true
 
 [bumpver.file_patterns]
 "src/slycache/__init__.py" = [
